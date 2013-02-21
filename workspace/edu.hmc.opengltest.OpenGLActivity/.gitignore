@@ -1,0 +1,6 @@
+# Dev folders
+bin
+gen
+
+# Editor ignores
+*~
