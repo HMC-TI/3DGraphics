@@ -1,0 +1,20 @@
+package com.example.spheredemo;
+
+import android.os.Bundle;
+import android.app.Activity;
+import android.view.Menu;
+
+public class GLTutorialFourteen extends Activity {
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_gltutorial_fourteen);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_gltutorial_fourteen, menu);
+        return true;
+    }
+}
