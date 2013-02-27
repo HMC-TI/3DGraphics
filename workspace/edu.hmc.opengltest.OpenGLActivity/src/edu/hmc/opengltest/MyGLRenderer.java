@@ -35,6 +35,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
     private static final String TAG = "MyGLRenderer";
     private Triangle mTriangle;
     private Square   mSquare;
+    private Cube	mCube;
+    private Diamond mDiamond;
   //  private Sphere	 mSphere;
 
     private final float[] mMVPMatrix = new float[16];
@@ -53,7 +55,29 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 
         mTriangle = new Triangle();
         mSquare   = new Square();
+        mCube	 = new Cube();
+        mDiamond = new Diamond();
         //mSphere   = new Sphere(2, 10, 10);
+        
+     // Position the eye behind the origin.
+        final float eyeX = 0.0f;
+        final float eyeY = 0.0f;
+        final float eyeZ = -3.0f;
+     
+        // We are looking toward the distance
+        final float lookX = 0.0f;
+        final float lookY = 0.0f;
+        final float lookZ = 0.0f;
+     
+        // Set our up vector. This is where our head would be pointing were we holding the camera.
+        final float upX = 0.0f;
+        final float upY = 1.0f;
+        final float upZ = 0.0f;
+     
+        // Set the view matrix. This matrix can be said to represent the camera position.
+        // NOTE: In OpenGL 1, a ModelView matrix is used, which is a combination of a model and
+        // view matrix. In OpenGL 2, we can keep track of these matrices separately if we choose.
+        Matrix.setLookAtM(mVMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
     }
 
     @Override
@@ -63,7 +87,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 
         // Set the camera position (View matrix)
-        Matrix.setLookAtM(mVMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+        //Matrix.setLookAtM(mVMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
 
         // Calculate the projection and view transformation
         Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);
@@ -74,7 +98,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         // Create a rotation for the triangle
 //        long time = SystemClock.uptimeMillis() % 4000L;
 //        float angle = 0.090f * ((int) time);
-        Matrix.setRotateM(mRotationMatrix, 0, mAngle, 0, 0, -1.0f);
+        Matrix.setRotateM(mRotationMatrix, 0, mAngle, -1.0f, -1.0f, -1.0f);
 
         // Combine the rotation matrix with the projection and camera view
         Matrix.multiplyMM(mMVPMatrix, 0, mRotationMatrix, 0, mMVPMatrix, 0);
@@ -83,6 +107,8 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
         //mTriangle.draw(mMVPMatrix);
         
         //mSphere.draw(mMVPMatrix);
+      //  mCube.draw(mMVPMatrix);
+        mDiamond.draw(mMVPMatrix);
     }
 
     
@@ -310,6 +336,251 @@ class Square {
         GLES20.glAttachShader(mProgram, fragmentShader); // add the fragment shader to program
         GLES20.glLinkProgram(mProgram);                  // create OpenGL program executables
     }
+    
+
+    public void draw(float[] mvpMatrix) {
+        // Add program to OpenGL environment
+        GLES20.glUseProgram(mProgram);
+
+        // get handle to vertex shader's vPosition member
+        mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
+
+        // Enable a handle to the triangle vertices
+        GLES20.glEnableVertexAttribArray(mPositionHandle);
+
+        // Prepare the triangle coordinate data
+        GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX,
+                                     GLES20.GL_FLOAT, false,
+                                     vertexStride, vertexBuffer);
+
+        // get handle to fragment shader's vColor member
+        mColorHandle = GLES20.glGetUniformLocation(mProgram, "vColor");
+
+        // Set color for drawing the triangle
+        GLES20.glUniform4fv(mColorHandle, 1, color, 0);
+
+        // get handle to shape's transformation matrix
+        mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
+        MyGLRenderer.checkGlError("glGetUniformLocation");
+
+        // Apply the projection and view transformation
+        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);
+        MyGLRenderer.checkGlError("glUniformMatrix4fv");
+
+        // Draw the square
+        GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.length,
+                              GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
+
+        // Disable vertex array
+        GLES20.glDisableVertexAttribArray(mPositionHandle);
+    }
+}
+
+class Cube {
+
+    private final String vertexShaderCode =
+            // This matrix member variable provides a hook to manipulate
+            // the coordinates of the objects that use this vertex shader
+            "uniform mat4 uMVPMatrix;" +
+
+            "attribute vec4 vPosition;" +
+            "void main() {" +
+            // the matrix must be included as a modifier of gl_Position
+            "  gl_Position = vPosition * uMVPMatrix;" +
+            "}";
+
+    private final String fragmentShaderCode =
+        "precision mediump float;" +
+        "uniform vec4 vColor;" +
+        "void main() {" +
+        "  gl_FragColor = vColor;" +
+        "}";
+
+    private final FloatBuffer vertexBuffer;
+    private final ShortBuffer drawListBuffer;
+    private final int mProgram;
+    private int mPositionHandle;
+    private int mColorHandle;
+    private int mMVPMatrixHandle;
+
+    // number of coordinates per vertex in this array
+    static final int COORDS_PER_VERTEX = 3;
+   /* static float cubeCoords[] = { -0.5f,  0.5f, 0.0f,   // top left
+                                    -0.5f, -0.5f, 0.0f,   // bottom left
+                                     0.5f, -0.5f, 0.0f,   // bottom right
+                                     0.5f,  0.5f, 0.0f }; // top right */
+                                     
+    static float cubeCoords[] = { -0.2f,  0.2f, 0.2f,   // top left, front
+         -0.2f, -0.2f, 0.2f,   // bottom left, front
+          0.2f, -0.2f, 0.2f,   // bottom right, front
+          0.2f,  0.2f, 0.2f,   // top right, front
+          -0.2f,  0.2f, -0.2f,   // top left, back
+          -0.2f, -0.2f, -0.2f,   // bottom left, back
+           0.2f, -0.2f, -0.2f,   // bottom right, back
+           0.2f,  0.2f, -0.2f,   //top right, back
+    };
+
+    private final short drawOrder[] = { 3, 2, 1, 3, 1, 0, 0, 2, 5, 0, 5, 4, 4, 5, 6, 4, 6, 7, 7, 6, 2, 7, 2, 3, 7, 3, 0, 7, 0, 4, 6, 2, 1, 6, 1, 5}; // order to draw vertices
+    //private final short drawOrder[] = { 0, 1, 2, 0, 2, 3, 3, 2, 5, 3, 5, 4, 4, 5, 6, 4, 6, 7, 7, 6, 1, 7, 1, 0, 7, 0, 3, 7, 3, 4, 6, 1, 2, 6, 2, 5};
+    
+    private final int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
+
+    // Set color with red, green, blue and alpha (opacity) values
+    //float color[] = { 0.2f, 0.709803922f, 0.898039216f, 1.0f };
+    float color[] = { 0.2f, 0.709803922f, 0.898039216f, 1.0f };
+
+    public Cube() {
+        // initialize vertex byte buffer for shape coordinates
+        ByteBuffer bb = ByteBuffer.allocateDirect(
+        // (# of coordinate values * 4 bytes per float)
+                cubeCoords.length * 4);
+        bb.order(ByteOrder.nativeOrder());
+        vertexBuffer = bb.asFloatBuffer();
+        vertexBuffer.put(cubeCoords);
+        vertexBuffer.position(0);
+
+        // initialize byte buffer for the draw list
+        ByteBuffer dlb = ByteBuffer.allocateDirect(
+        // (# of coordinate values * 2 bytes per short)
+                drawOrder.length * 2);
+        dlb.order(ByteOrder.nativeOrder());
+        drawListBuffer = dlb.asShortBuffer();
+        drawListBuffer.put(drawOrder);
+        drawListBuffer.position(0);
+
+        // prepare shaders and OpenGL program
+        int vertexShader = MyGLRenderer.loadShader(GLES20.GL_VERTEX_SHADER,
+                                                   vertexShaderCode);
+        int fragmentShader = MyGLRenderer.loadShader(GLES20.GL_FRAGMENT_SHADER,
+                                                     fragmentShaderCode);
+
+        mProgram = GLES20.glCreateProgram();             // create empty OpenGL Program
+        GLES20.glAttachShader(mProgram, vertexShader);   // add the vertex shader to program
+        GLES20.glAttachShader(mProgram, fragmentShader); // add the fragment shader to program
+        GLES20.glLinkProgram(mProgram);                  // create OpenGL program executables
+    }
+    
+
+    public void draw(float[] mvpMatrix) {
+        // Add program to OpenGL environment
+        GLES20.glUseProgram(mProgram);
+
+        // get handle to vertex shader's vPosition member
+        mPositionHandle = GLES20.glGetAttribLocation(mProgram, "vPosition");
+
+        // Enable a handle to the triangle vertices
+        GLES20.glEnableVertexAttribArray(mPositionHandle);
+
+        // Prepare the triangle coordinate data
+        GLES20.glVertexAttribPointer(mPositionHandle, COORDS_PER_VERTEX,
+                                     GLES20.GL_FLOAT, false,
+                                     vertexStride, vertexBuffer);
+
+        // get handle to fragment shader's vColor member
+        mColorHandle = GLES20.glGetUniformLocation(mProgram, "vColor");
+
+        // Set color for drawing the triangle
+        GLES20.glUniform4fv(mColorHandle, 1, color, 0);
+
+        // get handle to shape's transformation matrix
+        mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
+        MyGLRenderer.checkGlError("glGetUniformLocation");
+
+        // Apply the projection and view transformation
+        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);
+        MyGLRenderer.checkGlError("glUniformMatrix4fv");
+
+        // Draw the square
+        GLES20.glDrawElements(GLES20.GL_TRIANGLES, drawOrder.length,
+                              GLES20.GL_UNSIGNED_SHORT, drawListBuffer);
+
+        // Disable vertex array
+        GLES20.glDisableVertexAttribArray(mPositionHandle);
+    }
+}
+
+
+class Diamond {
+
+    private final String vertexShaderCode =
+        // This matrix member variable provides a hook to manipulate
+        // the coordinates of the objects that use this vertex shader
+        "uniform mat4 uMVPMatrix;" +
+
+        "attribute vec4 vPosition;" +
+        "void main() {" +
+        // the matrix must be included as a modifier of gl_Position
+        "  gl_Position = vPosition * uMVPMatrix;" +
+        "}";
+
+    private final String fragmentShaderCode =
+        "precision mediump float;" +
+        "uniform vec4 vColor;" +
+        "void main() {" +
+        "  gl_FragColor = vColor;" +
+        "}";
+
+    private final FloatBuffer vertexBuffer;
+    private final ShortBuffer drawListBuffer;
+    private final int mProgram;
+    private int mPositionHandle;
+    private int mColorHandle;
+    private int mMVPMatrixHandle;
+
+    // number of coordinates per vertex in this array
+    static final int COORDS_PER_VERTEX = 3;
+   /* static float cubeCoords[] = { -0.5f,  0.5f, 0.0f,   // top left
+                                    -0.5f, -0.5f, 0.0f,   // bottom left
+                                     0.5f, -0.5f, 0.0f,   // bottom right
+                                     0.5f,  0.5f, 0.0f }; // top right */
+                                     
+    static float diamondCoords[] = { 0.2f,  0.0f, 0.2f,   // top left, front
+         -0.2f, -0.0f, 0.2f,   // bottom left, front
+         -0.2f, -0.0f, -0.2f,   // bottom right, front
+          0.2f,  0.0f, -0.2f,   // top right, front
+          0.0f,  0.4f, 0.0f,   // top left, back
+          0.0f, -0.4f, 0.0f,   // bottom left, back
+    };
+
+    private final short drawOrder[] = {0, 1, 4, 1, 2, 4, 2, 3, 4, 0, 3, 4, 0, 1, 5, 1, 2, 5, 2, 3, 5, 0, 3, 5}; // order to draw vertices
+    //private final short drawOrder[] = { 0, 1, 2, 0, 2, 3, 3, 2, 5, 3, 5, 4, 4, 5, 6, 4, 6, 7, 7, 6, 1, 7, 1, 0, 7, 0, 3, 7, 3, 4, 6, 1, 2, 6, 2, 5};
+    
+    private final int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
+
+    // Set color with red, green, blue and alpha (opacity) values
+    float color[] = { 0.2f, 0.709803922f, 0.898039216f, 1.0f };
+
+    public Diamond() {
+        // initialize vertex byte buffer for shape coordinates
+        ByteBuffer bb = ByteBuffer.allocateDirect(
+        // (# of coordinate values * 4 bytes per float)
+                diamondCoords.length * 4);
+        bb.order(ByteOrder.nativeOrder());
+        vertexBuffer = bb.asFloatBuffer();
+        vertexBuffer.put(diamondCoords);
+        vertexBuffer.position(0);
+
+        // initialize byte buffer for the draw list
+        ByteBuffer dlb = ByteBuffer.allocateDirect(
+        // (# of coordinate values * 2 bytes per short)
+                drawOrder.length * 2);
+        dlb.order(ByteOrder.nativeOrder());
+        drawListBuffer = dlb.asShortBuffer();
+        drawListBuffer.put(drawOrder);
+        drawListBuffer.position(0);
+
+        // prepare shaders and OpenGL program
+        int vertexShader = MyGLRenderer.loadShader(GLES20.GL_VERTEX_SHADER,
+                                                   vertexShaderCode);
+        int fragmentShader = MyGLRenderer.loadShader(GLES20.GL_FRAGMENT_SHADER,
+                                                     fragmentShaderCode);
+
+        mProgram = GLES20.glCreateProgram();             // create empty OpenGL Program
+        GLES20.glAttachShader(mProgram, vertexShader);   // add the vertex shader to program
+        GLES20.glAttachShader(mProgram, fragmentShader); // add the fragment shader to program
+        GLES20.glLinkProgram(mProgram);                  // create OpenGL program executables
+    }
+    
 
     public void draw(float[] mvpMatrix) {
         // Add program to OpenGL environment
