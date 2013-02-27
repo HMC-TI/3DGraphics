@@ -1,5 +1,6 @@
 package com.example.daudiodemo;
 
+import android.util.FloatMath;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -492,6 +493,27 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		final float far = 10.0f;
 		
 		Matrix.frustumM(mProjectionMatrix, 0, left, right, bottom, top, near, far);
+		
+        /*long time = SystemClock.uptimeMillis() % 10000L;        
+        float angleInDegrees = (360.0f / 10000.0f) * ((int) time);      
+		
+		// Position the eye in front of the origin.
+		final float eyeX = 0.0f;
+		final float eyeY = 0.0f;
+		final float eyeZ = -0.5f;
+
+		// We are looking toward the distance
+		final float lookX = angleInDegrees/360;
+		final float lookY = 0.0f;
+		final float lookZ = -6.0f;
+
+		// Set our up vector. This is where our head would be pointing were we holding the camera.
+		final float upX = 0.0f;
+		final float upY = 1.0f;
+		final float upZ = 0.0f;
+
+		
+		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);	*/
 	}	
 
 	@Override
@@ -501,7 +523,10 @@ public class DemoRenderer implements GLSurfaceView.Renderer
                 
         // Do a complete rotation every 10 seconds.
         long time = SystemClock.uptimeMillis() % 10000L;        
-        float angleInDegrees = (360.0f / 10000.0f) * ((int) time);                
+        float angleInDegrees = (360.0f / 10000.0f) * ((int) time);    
+        
+        long time2 = SystemClock.uptimeMillis() % 10000L;        
+        float angleInDegrees2 = (2*3.14159265359f / 10000.0f) * ((int) time2);    
         
         // Set our per-vertex lighting program.
         GLES20.glUseProgram(mPerVertexProgramHandle);
@@ -555,6 +580,22 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         GLES20.glUseProgram(mPointProgramHandle);        
         drawLight();
         
+		// Position the eye in front of the origin.
+		final float eyeX = 0.0f;
+		final float eyeY = 0.0f;
+		final float eyeZ = -3.5f;
+
+		// We are looking toward the distance
+		final float lookX = -5.0f*FloatMath.cos(angleInDegrees2);
+		final float lookY = 0.0f;
+		final float lookZ = -5.0f*FloatMath.sin(angleInDegrees2);
+
+		// Set our up vector. This is where our head would be pointing were we holding the camera.
+		final float upX = 0.0f;
+		final float upY = 1.0f;
+		final float upZ = 0.0f;
+        
+        Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
 //        Matrix.rotateM(mViewMatrix, 0, angleInDegrees, 0.0f, 0.0f, -1.0f);
 	}				
 	
