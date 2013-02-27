@@ -7,6 +7,8 @@ import java.nio.FloatBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
+//import com.example.daudiodemo.Pyramid;
+
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
@@ -49,6 +51,10 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 	private final FloatBuffer mCubePositions;
 	private final FloatBuffer mCubeColors;
 	private final FloatBuffer mCubeNormals;
+	
+	private final FloatBuffer mPyramidPositions;
+	private final FloatBuffer mPyramidColors;
+	private final FloatBuffer mPyramidNormals;
 	
 	/** This will be used to pass in the transformation matrix. */
 	private int mMVPMatrixHandle;
@@ -267,6 +273,62 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 				0.0f, -1.0f, 0.0f
 		};
 		
+		/** The initial position definition */
+		final float pyramidPositionData[] = { 
+			 	0.0f,  1.0f,  0.0f,		//Top Of Triangle (Front)
+			 	-1.0f, -1.0f, 1.0f,		//Left Of Triangle (Front)
+				1.0f, -1.0f, 1.0f,		//Right Of Triangle (Front)
+				
+				0.0f,  1.0f, 0.0f,		//Top Of Triangle (Right)
+				1.0f, -1.0f, 1.0f,		//Left Of Triangle (Right)
+				1.0f, -1.0f, -1.0f,		//Right Of Triangle (Right)
+				
+				0.0f,  1.0f, 0.0f,		//Top Of Triangle (Back)
+				1.0f, -1.0f, -1.0f,		//Left Of Triangle (Back)
+				-1.0f, -1.0f, -1.0f,	//Right Of Triangle (Back)
+				
+				0.0f,  1.0f, 0.0f,		//Top Of Triangle (Left)
+				-1.0f, -1.0f, -1.0f,	//Left Of Triangle (Left)
+				-1.0f, -1.0f, 1.0f		//Right Of Triangle (Left)
+		};
+		/** The initial color definition */	
+		final float pyramidColorData[] = {
+	    		1.0f, 0.0f, 0.0f, 1.0f, //Red
+	    		0.0f, 1.0f, 0.0f, 1.0f, //Green
+	    		0.0f, 0.0f, 1.0f, 1.0f, //Blue
+	    		
+	    		1.0f, 0.0f, 0.0f, 1.0f, //Red
+	    		0.0f, 0.0f, 1.0f, 1.0f, //Blue
+	    		0.0f, 1.0f, 0.0f, 1.0f, //Green
+	    		
+	    		1.0f, 0.0f, 0.0f, 1.0f, //Red
+	    		0.0f, 1.0f, 0.0f, 1.0f, //Green
+	    		0.0f, 0.0f, 1.0f, 1.0f, //Blue
+	    		
+	    		1.0f, 0.0f, 0.0f, 1.0f, //Red
+	    		0.0f, 0.0f, 1.0f, 1.0f, //Blue
+	    		0.0f, 1.0f, 0.0f, 1.0f 	//Green
+		};
+		
+		/** The initial normal definition */
+		final float pyramidNormalData[] = { 
+			 	0.0f, 1.0f, 1.0f,		//Top Of Triangle (Front)
+			 	0.0f, 1.0f, 1.0f,		//Left Of Triangle (Front)
+				0.0f, 1.0f, 1.0f,		//Right Of Triangle (Front)
+				
+				1.0f, 1.0f, 0.0f,		//Top Of Triangle (Right)
+				1.0f, 1.0f, 0.0f,		//Left Of Triangle (Right)
+				1.0f, 1.0f, 0.0f,		//Right Of Triangle (Right)
+				
+				0.0f, 1.0f, -1.0f,		//Top Of Triangle (Back)
+				0.0f, 1.0f, -1.0f,		//Left Of Triangle (Back)
+				0.0f, 1.0f, -1.0f,		//Right Of Triangle (Back)
+				
+				-1.0f, 1.0f, 0.0f,		//Top Of Triangle (Left)
+				-1.0f, 1.0f, 0.0f,		//Left Of Triangle (Left)
+				-1.0f, 1.0f, 0.0f		//Right Of Triangle (Left)
+		};
+		
 		// Initialize the buffers.
 		mCubePositions = ByteBuffer.allocateDirect(cubePositionData.length * mBytesPerFloat)
         .order(ByteOrder.nativeOrder()).asFloatBuffer();							
@@ -279,26 +341,56 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		mCubeNormals = ByteBuffer.allocateDirect(cubeNormalData.length * mBytesPerFloat)
         .order(ByteOrder.nativeOrder()).asFloatBuffer();							
 		mCubeNormals.put(cubeNormalData).position(0);
+		
+		mPyramidPositions = ByteBuffer.allocateDirect(pyramidPositionData.length * mBytesPerFloat)
+        .order(ByteOrder.nativeOrder()).asFloatBuffer();							
+		mPyramidPositions.put(pyramidPositionData).position(0);		
+		
+		mPyramidColors = ByteBuffer.allocateDirect(pyramidColorData.length * mBytesPerFloat)
+        .order(ByteOrder.nativeOrder()).asFloatBuffer();							
+		mPyramidColors.put(pyramidColorData).position(0);
+		
+		mPyramidNormals = ByteBuffer.allocateDirect(pyramidNormalData.length * mBytesPerFloat)
+        .order(ByteOrder.nativeOrder()).asFloatBuffer();							
+		mPyramidNormals.put(pyramidNormalData).position(0);
 	}
 	
 	protected String getVertexShader()
 	{
 		// TODO: Explain why we normalize the vectors, explain some of the vector math behind it all. Explain what is eye space.
 		final String vertexShader =
-				"uniform mat4 u_MVPMatrix;      \n"		// A constant representing the combined model/view/projection matrix.
-				
-				  + "attribute vec4 a_Position;     \n"		// Per-vertex position information we will pass in.
-				  + "attribute vec4 a_Color;        \n"		// Per-vertex color information we will pass in.			  
-				  
-				  + "varying vec4 v_Color;          \n"		// This will be passed into the fragment shader.
-				  
-				  + "void main()                    \n"		// The entry point for our vertex shader.
-				  + "{                              \n"
-				  + "   v_Color = a_Color;          \n"		// Pass the color through to the fragment shader. 
-				  											// It will be interpolated across the triangle.
-				  + "   gl_Position = u_MVPMatrix   \n" 	// gl_Position is a special variable used to store the final position.
-				  + "               * a_Position;   \n"     // Multiply the vertex by the matrix to get the final point in 			                                            			 
-				  + "}                              \n";    // normalized screen coordinates.
+			"uniform mat4 u_MVPMatrix;      \n"		// A constant representing the combined model/view/projection matrix.
+		  + "uniform mat4 u_MVMatrix;       \n"		// A constant representing the combined model/view matrix.	
+		  + "uniform vec3 u_LightPos;       \n"	    // The position of the light in eye space.
+			
+		  + "attribute vec4 a_Position;     \n"		// Per-vertex position information we will pass in.
+		  + "attribute vec4 a_Color;        \n"		// Per-vertex color information we will pass in.
+		  + "attribute vec3 a_Normal;       \n"		// Per-vertex normal information we will pass in.
+		  
+		  + "varying vec4 v_Color;          \n"		// This will be passed into the fragment shader.
+		  
+		  + "void main()                    \n" 	// The entry point for our vertex shader.
+		  + "{                              \n"		
+		// Transform the vertex into eye space.
+		  + "   vec3 modelViewVertex = vec3(u_MVMatrix * a_Position);              \n"
+		// Transform the normal's orientation into eye space.
+		  + "   vec3 modelViewNormal = vec3(u_MVMatrix * vec4(a_Normal, 0.0));     \n"
+		// Will be used for attenuation.
+		  + "   float distance = length(u_LightPos - modelViewVertex);             \n"
+		// Get a lighting direction vector from the light to the vertex.
+		  + "   vec3 lightVector = normalize(u_LightPos - modelViewVertex);        \n"
+		// Calculate the dot product of the light vector and vertex normal. If the normal and light vector are
+		// pointing in the same direction then it will get max illumination.
+		  + "   float diffuse = max(dot(modelViewNormal, lightVector), 1.5);       \n" 	  		  													  
+		// Attenuate the light based on distance.
+		  + "   diffuse = diffuse * (1.0 / (1.0 + (0.25 * distance * distance)));  \n"
+		// Multiply the color by the illumination level. It will be interpolated across the triangle.
+		  + "   v_Color = a_Color * diffuse;                                       \n"
+		// gl_Position is a special variable used to store the final position.
+		// Multiply the vertex by the matrix to get the final point in normalized screen coordinates.		
+		  + "   gl_Position = u_MVPMatrix * a_Position;                            \n"     
+		  + "}                                                                     \n"; 
+		
 		return vertexShader;
 	}
 	
@@ -337,7 +429,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		// We are looking toward the distance
 		final float lookX = 0.0f;
 		final float lookY = 0.0f;
-		final float lookZ = -5.0f;
+		final float lookZ = -6.0f;
 
 		// Set our up vector. This is where our head would be pointing were we holding the camera.
 		final float upX = 0.0f;
@@ -433,21 +525,47 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         
         // Draw some cubes.        
         Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.scaleM(mModelMatrix, 0, 0.3f, 0.3f, 0.3f);
-        Matrix.translateM(mModelMatrix, 0, 0.0f, -1.0f, -6.0f);
-        drawCube();
+        Matrix.translateM(mModelMatrix, 0, 0.0f, 0.0f, -6.0f);
+        Matrix.scaleM(mModelMatrix, 0, -4.0f, -4.0f, -4.0f);
+        drawCube(GLES20.GL_CCW);
         
+        Matrix.setIdentityM(mModelMatrix, 0);
+        Matrix.translateM(mModelMatrix, 0, 3.0f, -3.0f, -8.0f);
+        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
+        drawCube(GLES20.GL_CCW);
+        
+        Matrix.setIdentityM(mModelMatrix, 0);
+        Matrix.translateM(mModelMatrix, 0, -2.0f, 2.0f, -8.0f);
+        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
+        drawCube(GLES20.GL_CCW);
+        
+     // Draw some pyramids.        
+        Matrix.setIdentityM(mModelMatrix, 0);
+        Matrix.translateM(mModelMatrix, 0, 0.0f, 1.0f, -6.0f);
+        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, -1.0f, 0.0f);
+        drawPyramid(GLES20.GL_CCW);  
+        
+        Matrix.setIdentityM(mModelMatrix, 0);
+        Matrix.translateM(mModelMatrix, 0, 0.0f, -1.0f, -6.0f);
+        Matrix.scaleM(mModelMatrix, 0, 1.0f, -1.0f, 1.0f);
+        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, -1.0f, 0.0f);
+        drawPyramid(GLES20.GL_CW);
         
         // Draw a point to indicate the light.
         GLES20.glUseProgram(mPointProgramHandle);        
         drawLight();
+        
+//        Matrix.rotateM(mViewMatrix, 0, angleInDegrees, 0.0f, 0.0f, -1.0f);
 	}				
 	
 	/**
 	 * Draws a cube.
 	 */			
-	private void drawCube()
+	private void drawCube(int mode)
 	{		
+		// Set face rotation
+		GLES20.glFrontFace(mode);
+		
 		// Pass in the position information
 		mCubePositions.position(0);		
         GLES20.glVertexAttribPointer(mPositionHandle, mPositionDataSize, GLES20.GL_FLOAT, false,
@@ -489,6 +607,53 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         // Draw the cube.
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);                               
 	}	
+	
+	private void drawPyramid(int mode)
+	{		
+		// Set face rotation
+		GLES20.glFrontFace(mode);
+		
+		// Pass in the position information
+		mPyramidPositions.position(0);		
+        GLES20.glVertexAttribPointer(mPositionHandle, mPositionDataSize, GLES20.GL_FLOAT, false,
+        		0, mPyramidPositions);        
+                
+        GLES20.glEnableVertexAttribArray(mPositionHandle);        
+        
+        // Pass in the color information
+        mPyramidColors.position(0);
+        GLES20.glVertexAttribPointer(mColorHandle, mColorDataSize, GLES20.GL_FLOAT, false,
+        		0, mPyramidColors);        
+        
+        GLES20.glEnableVertexAttribArray(mColorHandle);
+        
+        // Pass in the normal information
+        mPyramidNormals.position(0);
+        GLES20.glVertexAttribPointer(mNormalHandle, mNormalDataSize, GLES20.GL_FLOAT, false, 
+        		0, mPyramidNormals);
+        
+        GLES20.glEnableVertexAttribArray(mNormalHandle);
+       
+		// This multiplies the view matrix by the model matrix, and stores the result in the MVP matrix
+        // (which currently contains model * view).
+        Matrix.multiplyMM(mMVPMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);   
+        
+        // Pass in the modelview matrix.
+        GLES20.glUniformMatrix4fv(mMVMatrixHandle, 1, false, mMVPMatrix, 0);                
+        
+        // This multiplies the modelview matrix by the projection matrix, and stores the result in the MVP matrix
+        // (which now contains model * view * projection).
+        Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mMVPMatrix, 0);
+
+        // Pass in the combined matrix.
+        GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mMVPMatrix, 0);
+        
+        // Pass in the light position in eye space.        
+        GLES20.glUniform3f(mLightPosHandle, mLightPosInEyeSpace[0], mLightPosInEyeSpace[1], mLightPosInEyeSpace[2]);
+        
+        // Draw the pyramid.
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 12);                               
+	}
 	
 	/**
 	 * Draws a point representing the position of the light.
