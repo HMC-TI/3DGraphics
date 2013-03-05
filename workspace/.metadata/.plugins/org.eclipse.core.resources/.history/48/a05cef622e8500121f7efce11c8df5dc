@@ -65,8 +65,8 @@ public class MainGamePanel extends SurfaceView implements
 		Random rnd = new Random();
 		int randomx;
 		int randomy;
-		randomx = rnd.nextInt(getWidth());
-		randomy = rnd.nextInt(getHeight());
+		randomx = rnd.nextInt((int)event.getX());
+		randomy = rnd.nextInt((int)event.getY());
 		
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
 			if (event.getY() > getHeight() - 50) {

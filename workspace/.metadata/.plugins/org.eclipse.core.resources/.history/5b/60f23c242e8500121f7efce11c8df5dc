@@ -10,7 +10,6 @@ import android.graphics.BitmapFactory;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import java.util.Random;
 
 public class MainGamePanel extends SurfaceView implements
 	SurfaceHolder.Callback {
@@ -62,24 +61,15 @@ public class MainGamePanel extends SurfaceView implements
 	 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
-		Random rnd = new Random();
-		int randomx;
-		int randomy;
-		randomx = rnd.nextInt(getWidth());
-		randomy = rnd.nextInt(getHeight());
-		
 		if (event.getAction() == MotionEvent.ACTION_DOWN) {
 			if (event.getY() > getHeight() - 50) {
 				thread.setRunning(false);
 				((Activity)getContext()).finish();
 			} else {
 				source.handleActionDown((int)event.getX(), (int)event.getY());
-				if (source.isTouched()) {
-					source.randomLocation(randomx, randomy);
-				}
 				Log.d(TAG, "Coords: x=" + event.getX() + ",y=" + event.getY());
 			}
-		} /*if (event.getAction() == MotionEvent.ACTION_MOVE) {
+		} if (event.getAction() == MotionEvent.ACTION_MOVE) {
 			// the gestures
 			if (source.isTouched()) {
 				// the source was picked up and is being dragged
@@ -87,7 +77,7 @@ public class MainGamePanel extends SurfaceView implements
 				source.setY((int)event.getY());
 				Log.d(TAG, "Dragging...");
 			}
-		}*/ if (event.getAction() == MotionEvent.ACTION_UP) {
+		} if (event.getAction() == MotionEvent.ACTION_UP) {
 			// touch was released
 			if (source.isTouched()) {
 				source.setTouched(false);

@@ -79,10 +79,6 @@ public class Soundsource {
 		} else {
 			setTouched(false);
 		}
-	}
-	
-	public void randomLocation(int inputx, int inputy) {
-		this.x = inputx;
-		this.y = inputy;
+ 
 	}
 }
