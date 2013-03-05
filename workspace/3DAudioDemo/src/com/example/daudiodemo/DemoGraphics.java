@@ -16,7 +16,6 @@ public class DemoGraphics extends Activity
 	public void onCreate(Bundle savedInstanceState) 
 	{
 		super.onCreate(savedInstanceState);
-		
 		mGLSurfaceView = new GLSurfaceView(this);
 
 		// Check if the system supports OpenGL ES 2.0.
@@ -28,7 +27,6 @@ public class DemoGraphics extends Activity
 		{
 			// Request an OpenGL ES 2.0 compatible context.
 			mGLSurfaceView.setEGLContextClientVersion(2);
-
 			// Set the renderer to our demo renderer, defined below.
 			mGLSurfaceView.setRenderer(new DemoRenderer());
 		} 
