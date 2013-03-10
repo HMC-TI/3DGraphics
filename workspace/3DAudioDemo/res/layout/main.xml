@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="10dip" >
+	
+	<TextView 
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content" 
+		android:text="Please select your Razor AHRS Bluetooth device:"
+	/>
+
+	<ScrollView
+	    android:layout_width="fill_parent"
+	    android:layout_height="80dp"
+	    android:padding="15dip" >
+
+	    <RadioGroup
+	        android:id="@+id/devices_radiogroup"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content" >
+	    </RadioGroup>
+	</ScrollView>
+		
+
+	  
+	<TextView 
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content" 
+		android:text="You can only connect to paired devices. If you can't find your Razor AHRS, go to system options and make sure it's paired."
+	/>
+
+	<LinearLayout
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:orientation="horizontal" 
+	    android:gravity="top">
+
+	    <Button
+	        android:id="@+id/connect_button"
+	        android:layout_width="0dp"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1"
+
+	        android:text="Connect" />
+
+	    <Button
+	        android:id="@+id/cancel_button"
+	        android:layout_width="0dp"
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1"
+
+	        android:text="Cancel" />
+	</LinearLayout>
+	
+	
+	<!-- <LinearLayout
+		android:orientation="vertical"
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content"> 
+
+		<TextView
+		    android:id="@+id/yaw_text"
+		    android:layout_width="80dp"
+		    android:layout_height="wrap_content"
+		    android:text="YAW = " />
+
+		<TextView
+			android:id="@+id/yaw_textview"
+			android:layout_width="80dp"
+			android:layout_height="wrap_content"
+			android:layout_toRightOf="@+id/yaw_text"
+			android:layout_weight="1" 
+		/>
+		<TextView
+		    android:id="@+id/pitch_text"
+			android:layout_width="80dp" 
+			android:layout_height="wrap_content"
+			android:layout_toRightOf="@+id/yaw_textview"
+			android:text="PITCH = "
+		/>
+		<TextView
+			android:id="@+id/pitch_textview"
+			android:layout_width="80dp" 
+			android:layout_height="wrap_content"
+			android:layout_toRightOf="@+id/pitch_text"
+			android:layout_weight="1" 
+		/>
+		<TextView
+		    android:id="@+id/roll_text"
+			android:layout_width="80dp" 
+			android:layout_height="wrap_content"
+			android:layout_toRightOf="@+id/pitch_textview"
+			android:text="ROLL = "
+		/>
+
+		<TextView
+		    android:id="@+id/roll_textview"
+		    android:layout_width="80dp"
+		    android:layout_height="wrap_content"
+		    android:layout_toRightOf="@+id/roll_text"
+		    android:layout_weight="1" />
+	  
+	<TextView 
+		android:id="@+id/declination_textview"
+		android:layout_width="fill_parent" 
+		android:layout_height="wrap_content" />
+	</LinearLayout> -->
+
+	<LinearLayout 
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:orientation="horizontal"
+		android:gravity="top">
+
+		<Button
+		    android:id="@+id/play_music_button"
+		    android:layout_width="0dp"
+		    android:layout_height="wrap_content"
+		    android:layout_weight="1"
+		    android:text="Music Button" />
+		
+		<Button
+		    android:id="@+id/calibrate_button"
+		    android:layout_width="0dp"
+		    android:layout_height="wrap_content"
+		    android:layout_weight="1"
+		    android:text="Calibrate" />
+		
+		<Button 
+		    android:id="@+id/zero_button"
+		    android:layout_width="0dp"
+		    android:layout_height="wrap_content"
+		    android:layout_weight="1"
+		    android:text="Zero" />
+		
+	</LinearLayout>	
+	</LinearLayout>
