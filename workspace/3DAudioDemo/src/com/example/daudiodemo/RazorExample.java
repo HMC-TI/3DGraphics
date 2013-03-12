@@ -264,6 +264,7 @@ public class RazorExample extends Activity {
 		// Disable cancel button
 		cancelButton.setEnabled(false);
 		zeroButton.setEnabled(false);
+		//zeroButton.setEnabled(false);
 	}
 
 	private void setButtonStateConnecting() {

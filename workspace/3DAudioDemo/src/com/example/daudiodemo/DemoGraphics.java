@@ -107,6 +107,7 @@ public class DemoGraphics extends Activity
 		}
 
 		setContentView(mGLSurfaceView);
+			Toast.makeText(getApplicationContext(), " " + yawTextView, Toast.LENGTH_LONG).show();
 
 	}
 
