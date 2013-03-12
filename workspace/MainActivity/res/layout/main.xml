@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:weightSum="1"
+    android:background="#444444">
+    
+    <TextView  android:id="@+id/tvStatus" 
+        android:layout_width="fill_parent" 
+        android:layout_height="wrap_content" 
+        />
+    <LinearLayout android:layout_height="wrap_content" android:layout_width="fill_parent">
+        <ImageView android:id="@+id/ivLTrig" android:src="@drawable/indicator_off" android:layout_height="20sp" android:layout_width="20sp" android:scaleType="fitXY" />
+        <ImageView android:id="@+id/ivRTrig" android:src="@drawable/indicator_off" android:layout_height="20sp" android:layout_width="20sp" android:scaleType="fitXY" android:layout_marginLeft="170dp"/>
+    </LinearLayout>
+    <LinearLayout android:layout_height="wrap_content" android:layout_width="fill_parent">
+        <ImageView android:id="@+id/ivUp" android:src="@drawable/indicator_off" android:layout_height="20sp" android:layout_width="20sp" android:scaleType="fitXY" android:layout_marginLeft="20dp" />
+        <ImageView android:id="@+id/ivSelect" android:src="@drawable/indicator_off" android:layout_height="20sp" android:layout_width="20sp" android:scaleType="fitXY" android:layout_marginLeft="40dp" />
+        <ImageView android:id="@+id/ivStart" android:src="@drawable/indicator_off" android:layout_height="20sp" android:layout_width="20sp" android:scaleType="fitXY" android:layout_marginLeft="10dp" />
+        <ImageView android:id="@+id/ivA" android:src="@drawable/indicator_off" android:layout_height="20sp" android:layout_width="20sp" android:scaleType="fitXY" android:layout_marginLeft="40dp" />
+    </LinearLayout>
+    <LinearLayout android:layout_height="wrap_content" android:layout_width="fill_parent">
+        <ImageView android:id="@+id/ivLeft" android:src="@drawable/indicator_off" android:layout_height="20sp" android:layout_width="20sp" android:scaleType="fitXY" />
+        <ImageView android:id="@+id/ivRight" android:src="@drawable/indicator_off" android:layout_height="20sp" android:layout_width="20sp" android:scaleType="fitXY" android:layout_marginLeft="20dp" />
+        <ImageView android:id="@+id/ivD" android:src="@drawable/indicator_off" android:layout_height="20sp" android:layout_width="20sp" android:scaleType="fitXY" android:layout_marginLeft="90dp" />
+        <ImageView android:id="@+id/ivB" android:src="@drawable/indicator_off" android:layout_height="20sp" android:layout_width="20sp" android:scaleType="fitXY" android:layout_marginLeft="20dp" />
+    </LinearLayout>
+    <LinearLayout android:layout_height="wrap_content" android:layout_width="fill_parent" android:layout_marginBottom="30sp">
+        <ImageView android:id="@+id/ivDown" android:src="@drawable/indicator_off" android:layout_height="20sp" android:layout_width="20sp" android:scaleType="fitXY" android:layout_marginLeft="20dp" />
+        <ImageView android:id="@+id/ivC" android:src="@drawable/indicator_off" android:layout_height="20sp" android:layout_width="20sp" android:scaleType="fitXY" android:layout_marginLeft="130dp" />
+    </LinearLayout>
+</LinearLayout>

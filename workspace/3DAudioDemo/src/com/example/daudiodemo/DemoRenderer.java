@@ -1,6 +1,7 @@
 package com.example.daudiodemo;
 
 import android.util.FloatMath;
+import java.util.Random;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -24,6 +25,13 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 {
 	/** Used for debug logs. */
 	private static final String TAG = "DemoRenderer";
+	
+	/**
+	 * For pyramid location randomizing functionality
+	 */
+	private float pyrX = 0.0f;
+	private float pyrY = 0.0f;
+	private float pyrZ = -3.0f;
 	
 	/**
 	 * Store the model matrix. This matrix is used to move models from object space (where each model can be thought
@@ -500,13 +508,21 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 	public void onDrawFrame(GL10 glUnused) 
 	{
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);			        
-                
-        // Do a complete rotation every 10 seconds.
-        long time = SystemClock.uptimeMillis() % 10000L;        
+        
+		// For new octahedron random location
+		Random rand = new Random();
+		long time = SystemClock.uptimeMillis() % 10000L;
+		Log.d(TAG, "time: " + time);
+		if (time < 20) {
+			pyrX = rand.nextFloat()*8 - 4.0f;
+			pyrY = rand.nextFloat()*8 - 4.0f;
+			pyrZ = rand.nextFloat()*(-8) - 2.0f;
+		}
+		
+        // Do a complete rotation every 10 seconds.     
         float angleInDegrees = (360.0f / 10000.0f) * ((int) time); 
         
-        long time2 = SystemClock.uptimeMillis() % 10000L;        
-        float angleInDegrees2 = (2*3.14159265359f / 10000.0f) * ((int) time2);
+        float angleInDegrees2 = (2*3.14159265359f / 10000.0f) * ((int) time);
         
         // Set our per-vertex lighting program.
         GLES20.glUseProgram(mPerVertexProgramHandle);
@@ -528,7 +544,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         Matrix.multiplyMV(mLightPosInWorldSpace, 0, mLightModelMatrix, 0, mLightPosInModelSpace, 0);
         Matrix.multiplyMV(mLightPosInEyeSpace, 0, mViewMatrix, 0, mLightPosInWorldSpace, 0);                        
         
-        // Draw some cubes.        
+/*        // Draw some cubes.        
         Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.translateM(mModelMatrix, 0, 0.0f, 0.0f, -6.0f);
         Matrix.scaleM(mModelMatrix, 0, -7.5f, -7.5f, -7.5f);
@@ -566,16 +582,68 @@ public class DemoRenderer implements GLSurfaceView.Renderer
  		final float eyeZ = -6.0f;
 
  		// We are looking toward the distance
- 		final float lookX = -7.0f*FloatMath.cos(angleInDegrees2);
+ 		final float lookX = -6.0f*FloatMath.cos(angleInDegrees2);
  		final float lookY = 0.0f;
- 		final float lookZ = -7.0f*FloatMath.sin(angleInDegrees2)-6.0f;
+ 		final float lookZ = -6.0f*FloatMath.sin(angleInDegrees2)-6.0f;
 
  		// Set our up vector. This is where our head would be pointing were we holding the camera.
  		final float upX = 0.0f;
  		final float upY = 1.0f;
  		final float upZ = 0.0f;
-         
-        Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
+*/
+     // Draw some cubes.        
+        Matrix.setIdentityM(mModelMatrix, 0);
+        Matrix.translateM(mModelMatrix, 0, 0.0f, 0.0f, -6.0f);
+        Matrix.scaleM(mModelMatrix, 0, -4.0f, -4.0f, -4.0f);
+        drawCube(GLES20.GL_CCW);
+        
+        Matrix.setIdentityM(mModelMatrix, 0);
+        Matrix.translateM(mModelMatrix, 0, 3.0f, -3.0f, -8.0f);
+        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
+        Matrix.scaleM(mModelMatrix, 0, 0.4f, 0.4f, 0.4f);
+        drawCube(GLES20.GL_CCW);
+        
+        Matrix.setIdentityM(mModelMatrix, 0);
+        Matrix.translateM(mModelMatrix, 0, 2.0f, -2.0f, -4.0f);
+        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
+        Matrix.scaleM(mModelMatrix, 0, 0.1f, 0.1f, 0.1f);
+        drawCube(GLES20.GL_CCW);
+        
+     // Draw some pyramids.        
+        Matrix.setIdentityM(mModelMatrix, 0);
+        Matrix.translateM(mModelMatrix, 0, pyrX, pyrY+0.4f, pyrZ);
+        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, -1.0f, 0.0f);
+        Matrix.scaleM(mModelMatrix, 0, 0.2f, 0.2f, 0.2f);
+        drawPyramid(GLES20.GL_CCW);  
+        
+        Matrix.setIdentityM(mModelMatrix, 0);
+        Matrix.translateM(mModelMatrix, 0, pyrX, pyrY-0.4f, pyrZ);
+        Matrix.scaleM(mModelMatrix, 0, 1.0f, -1.0f, 1.0f);
+        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, -1.0f, 0.0f);
+        Matrix.scaleM(mModelMatrix, 0, 0.2f, 0.2f, 0.2f);
+        Matrix.translateM(mModelMatrix, 0, 0.0f, -2.0f, 0.0f);
+        drawPyramid(GLES20.GL_CW);
+        
+        // Draw a point to indicate the light.
+        GLES20.glUseProgram(mPointProgramHandle);        
+       // drawLight();
+        
+		// Position the eye in front of the origin.
+		final float eyeX = 0.0f;
+		final float eyeY = 0.0f;
+		final float eyeZ = -6.0f;
+
+		// We are looking toward the distance
+		final float lookX = -5.0f*FloatMath.cos(angleInDegrees2);
+		final float lookY = 0.0f;
+		final float lookZ = -5.0f*FloatMath.sin(angleInDegrees2)-6.0f;
+
+		// Set our up vector. This is where our head would be pointing were we holding the camera.
+		final float upX = 0.0f;
+		final float upY = 1.0f;
+		final float upZ = 0.0f;
+        
+		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
         
 //        Matrix.rotateM(mViewMatrix, 0, 1.0f, 0.0f, 1.0f, 0.0f);
 	}				
