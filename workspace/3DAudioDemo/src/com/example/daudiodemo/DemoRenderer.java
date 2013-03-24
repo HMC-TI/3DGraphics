@@ -23,40 +23,40 @@ import android.util.Log;
  */
 public class DemoRenderer implements GLSurfaceView.Renderer 
 {
-	/** Used for debug logs. */
+	// Used for debug logs.
 	private static final String TAG = "DemoRenderer";
 	
-	/**
-	 * For pyramid location randomizing functionality
-	 */
-	private float pyrX = 0.0f;
-	private float pyrY = 0.0f;
-	private float pyrZ = -3.0f;
+	// Declare as volatile because we are updating it from another thread
+    private float mAngle;
+    private float yAngle;
+    public volatile boolean found = false;
+    public volatile boolean leftRotate = false;
+    public volatile boolean rightRotate = false;
+    public volatile boolean upRotate = false;
+    public volatile boolean downRotate = false;
+    // For pyramid location randomizing functionality
+ 	public volatile float pyrX = 0.0f;
+ 	public volatile float pyrY = 0.0f;
+ 	public volatile float pyrZ = -3.0f;
 	
-	/**
-	 * Store the model matrix. This matrix is used to move models from object space (where each model can be thought
-	 * of being located at the center of the universe) to world space.
-	 */
+	// Store the model matrix. This matrix is used to move models from object space (where each model can be thought
+	// of being located at the center of the universe) to world space.
 	private float[] mModelMatrix = new float[16];
 
-	/**
-	 * Store the view matrix. This can be thought of as our camera. This matrix transforms world space to eye space;
-	 * it positions things relative to our eye.
-	 */
+	// Store the view matrix. This can be thought of as our camera. This matrix transforms world space to eye space;
+	// it positions things relative to our eye.
 	private float[] mViewMatrix = new float[16];
 
-	/** Store the projection matrix. This is used to project the scene onto a 2D viewport. */
+	// Store the projection matrix. This is used to project the scene onto a 2D viewport.
 	private float[] mProjectionMatrix = new float[16];
 	
-	/** Allocate storage for the final combined matrix. This will be passed into the shader program. */
+	// Allocate storage for the final combined matrix. This will be passed into the shader program.
 	private float[] mMVPMatrix = new float[16];
 	
-	/** 
-	 * Stores a copy of the model matrix specifically for the light position.
-	 */
+	// Stores a copy of the model matrix specifically for the light position.
 	private float[] mLightModelMatrix = new float[16];	
 	
-	/** Store our model data in a float buffer. */
+	// Store our model data in a float buffer.
 	private final FloatBuffer mCubePositions;
 	private final FloatBuffer mCubeColors;
 	private final FloatBuffer mCubeNormals;
@@ -65,55 +65,54 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 	private final FloatBuffer mPyramidColors;
 	private final FloatBuffer mPyramidNormals;
 	
-	/** This will be used to pass in the transformation matrix. */
+	// This will be used to pass in the transformation matrix.
 	private int mMVPMatrixHandle;
 	
-	/** This will be used to pass in the modelview matrix. */
+	// This will be used to pass in the modelview matrix.
 	private int mMVMatrixHandle;
 	
-	/** This will be used to pass in the light position. */
+	// This will be used to pass in the light position.
 	private int mLightPosHandle;
 	
-	/** This will be used to pass in model position information. */
+	// This will be used to pass in model position information.
 	private int mPositionHandle;
 	
-	/** This will be used to pass in model color information. */
+	// This will be used to pass in model color information.
 	private int mColorHandle;
 	
-	/** This will be used to pass in model normal information. */
+	// This will be used to pass in model normal information.
 	private int mNormalHandle;
 
-	/** How many bytes per float. */
+	// How many bytes per float.
 	private final int mBytesPerFloat = 4;	
 	
-	/** Size of the position data in elements. */
+	// Size of the position data in elements. */
 	private final int mPositionDataSize = 3;	
 	
-	/** Size of the color data in elements. */
+	// Size of the color data in elements. */
 	private final int mColorDataSize = 4;	
 	
-	/** Size of the normal data in elements. */
+	// Size of the normal data in elements. */
 	private final int mNormalDataSize = 3;
 	
-	/** Used to hold a light centered on the origin in model space. We need a 4th coordinate so we can get translations to work when
-	 *  we multiply this by our transformation matrices. */
+	// Used to hold a light centered on the origin in model space. We need a 4th coordinate so we can get translations
+	// to work when we multiply this by our transformation matrices.
 	private final float[] mLightPosInModelSpace = new float[] {0.0f, 0.0f, 0.0f, 1.0f};
 	
-	/** Used to hold the current position of the light in world space (after transformation via model matrix). */
+	// Used to hold the current position of the light in world space (after transformation via model matrix).
 	private final float[] mLightPosInWorldSpace = new float[4];
 	
-	/** Used to hold the transformed position of the light in eye space (after transformation via modelview matrix) */
+	// Used to hold the transformed position of the light in eye space (after transformation via modelview matrix)
 	private final float[] mLightPosInEyeSpace = new float[4];
 	
-	/** This is a handle to our per-vertex cube shading program. */
+	// This is a handle to our per-vertex cube shading program.
 	private int mPerVertexProgramHandle;
 		
-	/** This is a handle to our light point program. */
+	// This is a handle to our light point program.
 	private int mPointProgramHandle;	
 						
-	/**
-	 * Initialize the model data.
-	 */
+	
+	// Initialize the model data. 
 	public DemoRenderer()
 	{	
 		// Define points for a cube.		
@@ -513,16 +512,14 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		Random rand = new Random();
 		long time = SystemClock.uptimeMillis() % 10000L;
 		Log.d(TAG, "time: " + time);
-		if (time < 20) {
+/*		if (found) {
 			pyrX = rand.nextFloat()*8 - 4.0f;
 			pyrY = rand.nextFloat()*8 - 4.0f;
 			pyrZ = rand.nextFloat()*(-8) - 2.0f;
 		}
-		
+*/		
         // Do a complete rotation every 10 seconds.     
-        float angleInDegrees = (360.0f / 10000.0f) * ((int) time); 
-        
-        float angleInDegrees2 = (2*3.14159265359f / 10000.0f) * ((int) time);
+        float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
         
         // Set our per-vertex lighting program.
         GLES20.glUseProgram(mPerVertexProgramHandle);
@@ -628,15 +625,29 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         GLES20.glUseProgram(mPointProgramHandle);        
        // drawLight();
         
+        // Angles for rotation
+        if (leftRotate) {
+        	mAngle -= 2*3.14159265359f / 250.0f;
+        }
+        if (rightRotate) {
+        	mAngle += 2*3.14159265359f / 250.0f;
+        }
+        if (upRotate) {
+        	yAngle += 2*3.14159265359f / 250.0f;
+        }
+        if (downRotate) {
+        	yAngle -= 2*3.14159265359f / 250.0f;
+        }
+        
 		// Position the eye in front of the origin.
 		final float eyeX = 0.0f;
 		final float eyeY = 0.0f;
 		final float eyeZ = -6.0f;
 
 		// We are looking toward the distance
-		final float lookX = -5.0f*FloatMath.cos(angleInDegrees2);
-		final float lookY = 0.0f;
-		final float lookZ = -5.0f*FloatMath.sin(angleInDegrees2)-6.0f;
+		final float lookX = 5.0f*FloatMath.cos(mAngle);
+		final float lookY = 5.0f*FloatMath.sin(yAngle);
+		final float lookZ = 5.0f*FloatMath.sin(mAngle)-6.0f;
 
 		// Set our up vector. This is where our head would be pointing were we holding the camera.
 		final float upX = 0.0f;
@@ -644,13 +655,9 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		final float upZ = 0.0f;
         
 		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
-        
-//        Matrix.rotateM(mViewMatrix, 0, 1.0f, 0.0f, 1.0f, 0.0f);
 	}				
 	
-	/**
-	 * Draws a cube.
-	 */			
+	// Draws a cube.
 	private void drawCube(int mode)
 	{		
 		// Set face rotation

@@ -1,0 +1,58 @@
+package com.example.daudiodemo;
+
+import android.app.Activity;
+import android.content.Context;
+import android.opengl.GLSurfaceView;
+import android.os.Bundle;
+
+public class DemoGraphics extends Activity 
+{
+	/** Hold a reference to our GLSurfaceView */
+	private MyGLSurfaceView mGLSurfaceView;
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) 
+	{
+		super.onCreate(savedInstanceState);
+		mGLSurfaceView = new MyGLSurfaceView(this);
+		setContentView(mGLSurfaceView);
+	}
+
+	@Override
+	protected void onResume() 
+	{
+		// The activity must call the GL surface view's onResume() on activity onResume().
+		super.onResume();
+		mGLSurfaceView.onResume();
+	}
+
+	@Override
+	protected void onPause() 
+	{
+		// The activity must call the GL surface view's onPause() on activity onPause().
+		super.onPause();
+		mGLSurfaceView.onPause();
+	}	
+}
+
+class MyGLSurfaceView extends GLSurfaceView {
+
+    private final DemoRenderer mRenderer;
+
+    public MyGLSurfaceView(Context context) {
+        super(context);
+
+        // Create an OpenGL ES 2.0 context.
+        setEGLContextClientVersion(2);
+
+        // Set the Renderer for drawing on the GLSurfaceView
+        mRenderer = new DemoRenderer();
+        setRenderer(mRenderer);
+
+        // Render the view only when there is a change in the drawing data
+        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+    }
+    
+    
+    
+}
