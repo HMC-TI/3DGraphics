@@ -26,13 +26,18 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 	// Used for debug logs.
 	private static final String TAG = "DemoRenderer";
 	
-	// For pyramid location randomizing functionality
-	private float pyrX = 0.0f;
-	private float pyrY = 0.0f;
-	private float pyrZ = -3.0f;
-	
 	// Declare as volatile because we are updating it from another thread
-    public volatile float mAngle;
+    private float theta;
+    private float phi = 3.14159265359f/2;
+    public volatile boolean found = false;
+    public volatile boolean leftRotate = false;
+    public volatile boolean rightRotate = false;
+    public volatile boolean upRotate = false;
+    public volatile boolean downRotate = false;
+    // For pyramid location randomizing functionality
+ 	public volatile float pyrX = 0.0f;
+ 	public volatile float pyrY = 0.0f;
+ 	public volatile float pyrZ = -3.0f;
 	
 	// Store the model matrix. This matrix is used to move models from object space (where each model can be thought
 	// of being located at the center of the universe) to world space.
@@ -507,16 +512,14 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		Random rand = new Random();
 		long time = SystemClock.uptimeMillis() % 10000L;
 		Log.d(TAG, "time: " + time);
-		if (time < 20) {
+/*		if (found) {
 			pyrX = rand.nextFloat()*8 - 4.0f;
 			pyrY = rand.nextFloat()*8 - 4.0f;
 			pyrZ = rand.nextFloat()*(-8) - 2.0f;
 		}
-		
+*/		
         // Do a complete rotation every 10 seconds.     
-        float angleInDegrees = (360.0f / 10000.0f) * ((int) time); 
-        
-        float angleInDegrees2 = (2*3.14159265359f / 10000.0f) * ((int) time);
+        float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
         
         // Set our per-vertex lighting program.
         GLES20.glUseProgram(mPerVertexProgramHandle);
@@ -622,15 +625,35 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         GLES20.glUseProgram(mPointProgramHandle);        
        // drawLight();
         
+        // Angles for rotation
+        if (leftRotate) {
+        	theta -= 2*3.14159265359f / 250.0f;
+        }
+        if (rightRotate) {
+        	theta += 2*3.14159265359f / 250.0f;
+        }
+        if (upRotate) {
+        	// will not rotate above a top view; prevents view from flipping when viewing behind
+        	if (phi > 2*3.14159265359f / 250.0f) {
+        		phi -= 2*3.14159265359f / 250.0f;
+        	}
+        }
+        if (downRotate) {
+        	// will not rotate below bottom view for same reason
+        	if (phi < 2*3.14159265359f*124/250.0f) {
+        		phi += 2*3.14159265359f / 250.0f;
+        	}
+        }
+        
 		// Position the eye in front of the origin.
 		final float eyeX = 0.0f;
 		final float eyeY = 0.0f;
 		final float eyeZ = -6.0f;
 
 		// We are looking toward the distance
-		final float lookX = -5.0f*FloatMath.cos(mAngle);
-		final float lookY = 0.0f;
-		final float lookZ = -5.0f*FloatMath.sin(mAngle)-6.0f;
+		final float lookX = 5.0f*FloatMath.cos(theta)*FloatMath.sin(phi);
+		final float lookY = 5.0f*FloatMath.cos(phi);
+		final float lookZ = 5.0f*FloatMath.sin(theta)*FloatMath.sin(phi)-6.0f;
 
 		// Set our up vector. This is where our head would be pointing were we holding the camera.
 		final float upX = 0.0f;
