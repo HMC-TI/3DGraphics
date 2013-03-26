@@ -28,6 +28,8 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
+import de.tuberlin.qu.razorahrs.RazorAHRS;
+import de.tuberlin.qu.razorahrs.RazorListener;
 
 public class RazorExample extends Activity {
 
@@ -35,7 +37,7 @@ public class RazorExample extends Activity {
 	
 	public BluetoothAdapter bluetoothAdapter;
 	public static BluetoothDevice razorDevice;
-	//public RazorAHRS razor;
+	public RazorAHRS razor;
 	public BluetoothDevice rb;
 	
 	
@@ -128,25 +130,16 @@ public class RazorExample extends Activity {
 				// Disconnect so that the Razor doesn't freak out when we try to connect again
 				//razor.asyncDisconnect();
 				
-				// Add back in to start gameplay!
-//				Intent graphicsIntent = new Intent(RazorExample.this,
-//						DemoGraphics.class);
-//				
-//				startActivity(graphicsIntent);
+				Intent instructIntent = new Intent(RazorExample.this, InstructScreen.class);
+				
+				startActivity(instructIntent);
+				
+
 
 			};
 
 		});
 
-		/*calibrateButton.setOnClickListener(new View.OnClickListener() {
-
-			public void onClick(View view) {
-				Intent calibrateIntent = new Intent(RazorExample.this,
-						Calibration.class);
-				startActivity(calibrateIntent);
-			}
-		});
-	    */
 		
 	    // Connect button click handler
 	    connectButton.setOnClickListener(new View.OnClickListener() { 
@@ -174,6 +167,7 @@ public class RazorExample extends Activity {
 	    		//razor.asyncDisconnect(); // Also cancels pending connect 
 	    		stopService(new Intent(RazorExample.this,SensorHubService.class));
 	    		setButtonStateDisconnected();
+	    		Toast.makeText(RazorExample.this,"Sensor Hub Service Stopped ...", Toast.LENGTH_LONG).show();
 	    	}
 	    });
 	    

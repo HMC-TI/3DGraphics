@@ -8,10 +8,16 @@
     <string name="title_activity_intro_screen">IntroScreen</string>
     <string name="title_activity_demo_graphics">DemoGraphics</string>
     <string name="title_activity_razor_example">RazorExample</string>
+    <string name="title_activity_instruct_screen">InstructScreen</string>
     
     <string name="intro_message">Start by calibrating your sensor hub. Click below to begin.</string>
+    <string name="instruct_message">Gameplay instructions here!</string>
+    
     <string name="game_button">Begin Game</string>
     <string name="music_button">Music</string>
     <string name="begin_button">Begin</string>
+    <string name="play_button">Play</string>
+    
+    
 
 </resources>
