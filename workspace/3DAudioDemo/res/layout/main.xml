@@ -114,26 +114,26 @@
 		android:orientation="horizontal"
 		android:gravity="top">
 
-		<Button
+		<!--<Button
 		    android:id="@+id/play_music_button"
 		    android:layout_width="0dp"
 		    android:layout_height="wrap_content"
 		    android:layout_weight="1"
-		    android:text="Music Button" />
+		    android:text="@string/music_button" />
 		
 		<Button
 		    android:id="@+id/calibrate_button"
 		    android:layout_width="0dp"
 		    android:layout_height="wrap_content"
 		    android:layout_weight="1"
-		    android:text="Calibrate" />
+		    android:text="Calibrate" />-->
 		
 		<Button 
 		    android:id="@+id/zero_button"
 		    android:layout_width="0dp"
 		    android:layout_height="wrap_content"
 		    android:layout_weight="1"
-		    android:text="Zero" />
+		    android:text="@string/game_button" />
 		
 	</LinearLayout>	
 	</LinearLayout>

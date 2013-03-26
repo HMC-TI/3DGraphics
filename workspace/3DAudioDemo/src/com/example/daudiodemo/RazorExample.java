@@ -13,7 +13,6 @@
 
 package com.example.daudiodemo;
 
-import java.io.IOException;
 import java.util.Set;
 
 import android.app.Activity;
@@ -21,7 +20,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -30,17 +28,16 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-import de.tuberlin.qu.razorahrs.DeclinationHelper;
-import de.tuberlin.qu.razorahrs.RazorAHRS;
-import de.tuberlin.qu.razorahrs.RazorListener;
 
 public class RazorExample extends Activity {
 
-	protected static final String TAG = "RazorExampleActivity";
+	protected static final String TAG = "RazorExample";
 	
-	private BluetoothAdapter bluetoothAdapter;
+	public BluetoothAdapter bluetoothAdapter;
 	public static BluetoothDevice razorDevice;
-	private RazorAHRS razor;
+	//public RazorAHRS razor;
+	public BluetoothDevice rb;
+	
 	
 	public static float roll = 0;
 	public static float pitch = 0;
@@ -53,17 +50,15 @@ public class RazorExample extends Activity {
 	public static boolean initConnected = false;
 	
 	private RadioGroup deviceListRadioGroup;
-	private Button zeroButton;
-	private Button connectButton;
-	private Button cancelButton;
-	private Button playMusicButton;
-	private Button calibrateButton;
-	/*private TextView yawTextView;
-	private TextView pitchTextView;
-	private TextView rollTextView;*/
-	private TextView declinationTextView;
+	public static Button zeroButton;
+	public static Button connectButton;
+	public static Button cancelButton;
 	
-	public static boolean continueMusic = false;
+//	private Button playMusicButton;
+//	private Button calibrateButton;
+//	private TextView declinationTextView;
+	
+	public static boolean continueMusic=false;
 	
 	
 	@Override
@@ -71,29 +66,19 @@ public class RazorExample extends Activity {
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "onCreate");
 		
-		// Set content view
+		// Make the orientation landscape due to hardware setup
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+		
 		setContentView(R.layout.main);
 		
 		// Find views
 		zeroButton = (Button) findViewById(R.id.zero_button);
 		connectButton = (Button) findViewById(R.id.connect_button);
 		cancelButton = (Button) findViewById(R.id.cancel_button);
-		playMusicButton = (Button) findViewById(R.id.play_music_button);
-		calibrateButton = (Button) findViewById(R.id.calibrate_button);
+//		playMusicButton = (Button) findViewById(R.id.play_music_button);
+//		calibrateButton = (Button) findViewById(R.id.calibrate_button);
 		deviceListRadioGroup = (RadioGroup) findViewById(R.id.devices_radiogroup);
-		/*yawTextView = (TextView) findViewById(R.id.yaw_textview);
-		pitchTextView = (TextView) findViewById(R.id.pitch_textview);
-		rollTextView = (TextView) findViewById(R.id.roll_textview);
-		declinationTextView = (TextView) findViewById(R.id.declination_textview);*/
-		
-		/*// Get current declination
-		Location currentLocation = DeclinationHelper.getCurrentLocation(this);
-		if (currentLocation == null)
-			declinationTextView.setText("Magnetic declination: Unknown, can not get current location.");
-		else
-			declinationTextView.setText("Magnetic declination: "
-					+ String.format("%.3f", DeclinationHelper.getDeclinationAt(currentLocation)) + "¡");*/
+
 		
 		// Get Bluetooth adapter
 		bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -123,42 +108,33 @@ public class RazorExample extends Activity {
 	    // Check if any paired devices found
 	    if (pairedDevices.size() == 0) {
 	    	errorText("No paired Bluetooth devices found. Please go to Bluetooth Settings and pair the Razor AHRS.");
-	    } else {
+	    } 
+	    
+	    else {
 	    	((RadioButton) deviceListRadioGroup.getChildAt(0)).setChecked(true);
 	    	setButtonStateDisconnected();
 	    }
 	    
-	    /*final PlayMusic music = new PlayMusic();
-	    music.execute();
-	    
-	    playMusicButton.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View view) {
-				if (continueMusic)
-					continueMusic = false;
-				else {
-					continueMusic = true;
-					new PlayMusic().execute();
-				}
-			}
-		});
-	    	*/
+
 		zeroButton.setOnClickListener(new View.OnClickListener() {
 
 			public void onClick(View v) {
-				DemoGraphics.initRoll = roll;
-				DemoGraphics.initPitch = pitch;
-				DemoGraphics.initYaw = yaw;
-				// RazorExample.initial.setText(String.format("%s",
-				// RazorExample.initRoll));
+				SensorHubService.initRoll = roll;
+				SensorHubService.initPitch = pitch;
+				SensorHubService.initYaw = yaw;
 
-				// Disconnect so that the Razor doesn't freak out when we try to connect again
-				razor.asyncDisconnect();
+				Toast.makeText(RazorExample.this, "Initial Values Collected!", Toast.LENGTH_SHORT).show();
 				
-				Intent graphicsIntent = new Intent(RazorExample.this,
-						DemoGraphics.class);
-				startActivity(graphicsIntent);
+				// Disconnect so that the Razor doesn't freak out when we try to connect again
+				//razor.asyncDisconnect();
+				
+				// Add back in to start gameplay!
+//				Intent graphicsIntent = new Intent(RazorExample.this,
+//						DemoGraphics.class);
+//				
+//				startActivity(graphicsIntent);
 
-			}
+			};
 
 		});
 
@@ -171,8 +147,10 @@ public class RazorExample extends Activity {
 			}
 		});
 	    */
+		
 	    // Connect button click handler
-	    connectButton.setOnClickListener(new View.OnClickListener() {
+	    connectButton.setOnClickListener(new View.OnClickListener() { 
+	    	
 	    	public void onClick(View view) {
 	    		setButtonStateConnecting();
 	    		
@@ -184,63 +162,17 @@ public class RazorExample extends Activity {
 	    		}
 	    		razorDevice = (BluetoothDevice) rb.getTag();
 	    		
-	    		// Create new razor instance and set listener
-	    		razor = new RazorAHRS(razorDevice, new RazorListener() {
-	    			public void onConnectAttempt(int attempt, int maxAttempts) {
-	    				Toast.makeText(RazorExample.this, "Connect attempt " + attempt + " of " + maxAttempts + "...", Toast.LENGTH_SHORT).show();
-	    			}
-	    			
-	    			public void onConnectOk() {
-	    				Toast.makeText(RazorExample.this, "Connected!", Toast.LENGTH_LONG).show();
-	    				setButtonStateConnected();
-	    			}
-	    			
-	    			public void onConnectFail(Exception e) {
-	    				setButtonStateDisconnected();
-		    			Toast.makeText(RazorExample.this, "Connecting failed: " + e.getMessage() + ".", Toast.LENGTH_LONG).show();
-	    			}
-	    			
-	    			/**************************************************************
-	    			 * This is the function that we want to use to get the roll, pitch and yaw
-	    			 * 
-	    			 * This update method is called in the RazorAHRS profile, which is what
-	    			 * connects with the bluetooth 
-	    			 **************************************************************/
-					public void onAnglesUpdate(float yaw, float pitch, float roll) {
-						/*yawTextView.setText(String.format("%.1f", yaw));
-						pitchTextView.setText(String.format("%.1f", pitch));
-						rollTextView.setText(String.format("%.1f", roll));*/
-						//Calibration.rollTextViewCal.setText(String.format("%.1f", roll));
-						//if (RazorExample.initConnected){
-							//RazorExample.initRoll = roll;
-							//RazorExample.initPitch = pitch;
-							//RazorExample.initYaw = yaw;
-							//initial.setText(String.format("%s", initRoll));
-							//RazorExample.initConnected = false;
-							
-	    				//}
+	    		// Start service
+		    	startService(new Intent(RazorExample.this, SensorHubService.class));
 	    		
-						RazorExample.roll = roll;
-						RazorExample.pitch = pitch;
-						RazorExample.yaw = yaw;
-								
-					}
-
-					public void onIOExceptionAndDisconnect(IOException e) {
-	    				setButtonStateDisconnected();
-		    			Toast.makeText(RazorExample.this, "Disconnected, an error occured: " + e.getMessage() + ".", Toast.LENGTH_LONG).show();
-					}
-	    		});
-	    		
-	    		// Connect asynchronously
-	    		razor.asyncConnect(5);	// 5 connect attempts
 	    	}
 	    });
 	    
 	    // Cancel button click handler
 	    cancelButton.setOnClickListener(new View.OnClickListener() {
 	    	public void onClick(View view) {
-	    		razor.asyncDisconnect(); // Also cancels pending connect 
+	    		//razor.asyncDisconnect(); // Also cancels pending connect 
+	    		stopService(new Intent(RazorExample.this,SensorHubService.class));
 	    		setButtonStateDisconnected();
 	    	}
 	    });
@@ -263,7 +195,7 @@ public class RazorExample extends Activity {
 		
 		// Disable cancel button
 		cancelButton.setEnabled(false);
-		//zeroButton.setEnabled(false);
+		zeroButton.setEnabled(false);
 	}
 
 	private void setButtonStateConnecting() {
@@ -275,24 +207,26 @@ public class RazorExample extends Activity {
 		cancelButton.setEnabled(true);
 	}
 
-	private void setButtonStateConnected() {
-		// Disable connect button and set text
-		connectButton.setEnabled(false);
-		connectButton.setText("Connected");
-		
-		// Enable cancel button
-		cancelButton.setEnabled(true);
-		zeroButton.setEnabled(true);
-		
-	}
+//	private void setButtonStateConnected() {
+//		// Disable connect button and set text
+//		connectButton.setEnabled(false);
+//		connectButton.setText("Connected");
+//		
+//		// Enable cancel button
+//		cancelButton.setEnabled(true);
+//		zeroButton.setEnabled(true);
+//		
+//	}
 	
 	@Override
 	protected void onStop() {
 		super.onStop();
 		Log.d(TAG, "onStop");
+		stopService(new Intent(RazorExample.this,SensorHubService.class));
 		
-		if (razor != null)
-			razor.asyncDisconnect();
+		//if (razor != null)
+		//	razor.asyncDisconnect();
 	}
 	
+
 }
