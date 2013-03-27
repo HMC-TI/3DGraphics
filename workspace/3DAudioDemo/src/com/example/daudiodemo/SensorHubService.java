@@ -3,12 +3,9 @@ package com.example.daudiodemo;
 import java.io.IOException;
 
 import android.app.Service;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import de.tuberlin.qu.razorahrs.RazorAHRS;
@@ -20,10 +17,10 @@ public class SensorHubService  extends Service{
 	
 	protected static final String TAG = "SensorHubService";
 	
-	public BluetoothAdapter bluetoothAdapter;
-	public static BluetoothDevice razorDevice;
+	//public BluetoothAdapter bluetoothAdapter;
+	//public static BluetoothDevice razorDevice;
 	public RazorAHRS razor;
-	public RadioGroup deviceListRadioGroup;
+	//public RadioGroup deviceListRadioGroup;
 	
 	public static float roll = 0;
 	public static float pitch = 0;
@@ -50,7 +47,7 @@ public class SensorHubService  extends Service{
           super.onCreate();
           Log.d(TAG, "onCreate");
           
-          Toast.makeText(SensorHubService.this,"Sensor Hub Service Created ...", Toast.LENGTH_LONG).show();
+          Toast.makeText(SensorHubService.this,"Sensor Hub Service Created ...", Toast.LENGTH_SHORT).show();
     	
 
 
@@ -90,12 +87,20 @@ public class SensorHubService  extends Service{
 			}
 	
 			public void onIOExceptionAndDisconnect(IOException e) {
-				Toast.makeText(SensorHubService.this, "Disconnected, an error occured: " + e.getMessage() + ".", Toast.LENGTH_LONG).show();
+				Toast.makeText(SensorHubService.this, "Disconnected, an error occured: " + e.getMessage() + ".", Toast.LENGTH_SHORT).show();
 			}
 		
+			
 	});
 
+		// Connect asynchronously
+		razor.asyncConnect(5);	// 5 connect attempts
+		
     
+
+		
+		
+		
     RazorExample.connectButton.setEnabled(false);
     RazorExample.connectButton.setText("Connected");
     
@@ -103,7 +108,12 @@ public class SensorHubService  extends Service{
     RazorExample.cancelButton.setText("Cancel");
     
     RazorExample.zeroButton.setEnabled(true);
+    }
     
+    @Override
+    public void onDestroy(){
+    	super.onDestroy();
+    	this.razor.asyncDisconnect();
     }
 }
 
