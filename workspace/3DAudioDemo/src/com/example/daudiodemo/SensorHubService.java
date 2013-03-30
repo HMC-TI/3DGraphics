@@ -75,14 +75,18 @@ public class SensorHubService  extends Service{
 			 **************************************************************/
 			public void onAnglesUpdate(float yaw, float pitch, float roll) {
 				//Calibration.rollTextViewCal.setText(String.format("%.1f", roll));
-				SensorHubService.roll = (int) roll;
-				SensorHubService.pitch = (int) pitch;
-				SensorHubService.yaw = (int) yaw;
+				SensorHubService.roll = (float) roll;
+				SensorHubService.pitch = (float) pitch;
+				SensorHubService.yaw = (float) yaw;
+				
+//				DemoGraphics.mGLSurfaceView.mRenderer.caliRoll = roll;
+//				DemoGraphics.mGLSurfaceView.mRenderer.caliPitch = pitch;
+//				DemoGraphics.mGLSurfaceView.mRenderer.caliYaw = yaw;
 				
 				// ----> Still need to deal with wrap around possibly
-				SensorHubService.caliRoll=(int) SensorHubService.roll - SensorHubService.initRoll;
-				SensorHubService.caliPitch=(int) SensorHubService.pitch - SensorHubService.initPitch;
-				SensorHubService.caliYaw=(int) SensorHubService.yaw - SensorHubService.initYaw;
+				SensorHubService.caliRoll=(float) (SensorHubService.roll - SensorHubService.initRoll);
+				SensorHubService.caliPitch=(float) SensorHubService.pitch - SensorHubService.initPitch;
+				SensorHubService.caliYaw=(float) SensorHubService.yaw - SensorHubService.initYaw;
 						
 			}
 	

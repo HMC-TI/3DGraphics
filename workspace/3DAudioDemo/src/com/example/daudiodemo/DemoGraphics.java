@@ -1,116 +1,52 @@
 package com.example.daudiodemo;
 
+import java.util.Random;
+
 import android.app.Activity;
-import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.pm.ConfigurationInfo;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.view.KeyEvent;
 
 public class DemoGraphics extends Activity 
 {
+	private BroadcastReceiver mReceiver;
 	/** Hold a reference to our GLSurfaceView */
-	private GLSurfaceView mGLSurfaceView;
-//	protected static final String TAG = "RazorExampleActivity";
-//
-//	private BluetoothAdapter bluetoothAdapter;
-//	public static BluetoothDevice razorDevice;
-//	private RazorAHRS razor;
-//	
-//	private TextView yawTextView;
-//	private TextView pitchTextView;
-//	private TextView rollTextView;
-//	private TextView declinationTextView;
-//	
-//	public static float roll = 0;
-//	public static float pitch = 0;
-//	public static float yaw = 0;
-//	public static float initRoll;
-//	public static float initPitch;
-//	public static float initYaw;
-//	
-	
+	public MyGLSurfaceView mGLSurfaceView;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) 
 	{
-//		super.onCreate(savedInstanceState);
-//		Log.d(TAG, "onCreate");
-//		
-//		// Create new razor instance and set listener
-//		razor = new RazorAHRS(RazorExample.razorDevice, new RazorListener() {
-//			public void onConnectAttempt(int attempt, int maxAttempts) {
-//				Toast.makeText(DemoGraphics.this, "Connect attempt " + attempt + " of " + maxAttempts + "...", Toast.LENGTH_SHORT).show();
-//			}
-//			
-//			public void onConnectOk() {
-//				Toast.makeText(DemoGraphics.this, "Connected!", Toast.LENGTH_LONG).show();
-//			}
-//			
-//			public void onConnectFail(Exception e) {
-//    			Toast.makeText(DemoGraphics.this, "Connecting failed: " + e.getMessage() + ".", Toast.LENGTH_LONG).show();
-//			}
-//			
-//			/**************************************************************
-//			 * This is the function that we want to use to get the roll, pitch and yaw
-//			 * 
-//			 * This update method is called in the RazorAHRS profile, which is what
-//			 * connects with the bluetooth 
-//			 **************************************************************/
-//			public void onAnglesUpdate(float yaw, float pitch, float roll) {
-//				//Calibration.rollTextViewCal.setText(String.format("%.1f", roll));
-//				DemoGraphics.roll = (int) roll;
-//				DemoGraphics.pitch = (int) pitch;
-//				DemoGraphics.yaw = (int) yaw;
-//				
-//				//rollTextViewCal.setText(String.format("%s", Calibration.roll));
-//						
-//			}
-//
-//			public void onIOExceptionAndDisconnect(IOException e) {
-//    			Toast.makeText(DemoGraphics.this, "Disconnected, an error occurred: " + e.getMessage() + ".", Toast.LENGTH_LONG).show();
-//			}
-//		});
-//		
-//		// Connect asynchronously
-//		razor.asyncConnect(5);
-				
-		
-		mGLSurfaceView = new GLSurfaceView(this);
-
-		// Check if the system supports OpenGL ES 2.0.
-		final ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-		final ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
-		final boolean supportsEs2 = configurationInfo.reqGlEsVersion >= 0x20000;
-
-		if (supportsEs2) 
-		{
-			// Request an OpenGL ES 2.0 compatible context.
-			mGLSurfaceView.setEGLContextClientVersion(2);
-
-			// Set the renderer to our demo renderer, defined below.
-			mGLSurfaceView.setRenderer(new DemoRenderer());
-		} 
-		else 
-		{
-			// This is where you could create an OpenGL ES 1.x compatible
-			// renderer if you wanted to support both ES 1 and ES 2.
-			return;
-		}
-
+		super.onCreate(savedInstanceState);
+		mGLSurfaceView = new MyGLSurfaceView(this);
+		mReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {}
+        };
 		setContentView(mGLSurfaceView);
-		
-//		for (int i=0; i < 5; i++)
-//		{
-//			Toast.makeText(getApplicationContext(), " " + yawTextView, Toast.LENGTH_LONG).show();
-//		}
-		
-
 	}
+
+	@Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mReceiver = null;
+    }
 
 	@Override
 	protected void onResume() 
 	{
 		// The activity must call the GL surface view's onResume() on activity onResume().
+		/* Register a listener to detect when Gametel devices connects/disconnects */
+        IntentFilter filter = new IntentFilter();
+        /* For devices in RFCOMM mode (which uses the InputMethod) */
+        filter.addAction(Intent.ACTION_INPUT_METHOD_CHANGED); 
+        /* For devices in HID mode */
+        filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED); 
+        registerReceiver(mReceiver, filter);
+        
 		super.onResume();
 		mGLSurfaceView.onResume();
 	}
@@ -118,8 +54,128 @@ public class DemoGraphics extends Activity
 	@Override
 	protected void onPause() 
 	{
+		unregisterReceiver(mReceiver);
 		// The activity must call the GL surface view's onPause() on activity onPause().
 		super.onPause();
 		mGLSurfaceView.onPause();
-	}	
+	}
+
+	@Override
+    public boolean onKeyDown (int keyCode, KeyEvent event) {
+        if (!mGLSurfaceView.handleKeyEvent(keyCode, event))
+            return super.onKeyDown(keyCode, event);
+        return true;
+    }
+    
+    @Override
+    public boolean onKeyUp (int keyCode, KeyEvent event) {
+        if (!mGLSurfaceView.handleKeyEvent(keyCode, event))
+            return super.onKeyDown(keyCode, event);
+        return true;
+    }
+}
+
+class MyGLSurfaceView extends GLSurfaceView {
+
+    public final DemoRenderer mRenderer;
+
+    public MyGLSurfaceView(Context context) {
+        super(context);
+
+        // Create an OpenGL ES 2.0 context.
+        setEGLContextClientVersion(2);
+
+        // Set the Renderer for drawing on the GLSurfaceView
+        mRenderer = new DemoRenderer();
+        setRenderer(mRenderer);
+    }
+    
+    /* Help function to parse the Gametel key */ 
+    public boolean handleKeyEvent(int keyCode, KeyEvent event) {
+        boolean pressed = event.getAction() == KeyEvent.ACTION_DOWN;
+        
+        switch (keyCode) {
+        
+        /* Upper navigation button */
+        case KeyEvent.KEYCODE_DPAD_UP:
+        	if (pressed) {
+        		mRenderer.upRotate = true;
+        	} else {
+        		mRenderer.upRotate = false;
+        	}
+            break;
+            
+           /* Right navigation button */
+        case KeyEvent.KEYCODE_DPAD_RIGHT:
+        	if (pressed) {
+        		mRenderer.rightRotate = true;
+        	} else {
+        		mRenderer.rightRotate = false;
+        	}
+            break;
+            
+        /* Lower navigation button */
+        case KeyEvent.KEYCODE_DPAD_DOWN:
+        	if (pressed) {
+        		mRenderer.downRotate = true;
+        	} else {
+        		mRenderer.downRotate = false;
+        	}
+            break;
+            
+        /* Left navigation button */
+        case KeyEvent.KEYCODE_DPAD_LEFT:
+        	if (pressed) {
+        		mRenderer.leftRotate = true;
+        	} else {
+        		mRenderer.leftRotate = false;
+        	}
+            break;
+                        
+        /* Start button */
+        case KeyEvent.KEYCODE_BUTTON_START:
+            break;
+            
+        /* Select button */
+        case KeyEvent.KEYCODE_BUTTON_SELECT:
+            break;
+            
+        /* Left trigger button */
+        case KeyEvent.KEYCODE_BUTTON_L1:
+            break;
+            
+        /* Right trigger button */
+        case KeyEvent.KEYCODE_BUTTON_R1:
+            break;
+
+        /* Upper action button */
+        case KeyEvent.KEYCODE_BUTTON_Y:
+            break;
+            
+           /* Right action button - can either be BACK+ALT or BUTTON_C depending on device mode */
+        case KeyEvent.KEYCODE_BACK:
+            break;
+        case KeyEvent.KEYCODE_BUTTON_C:
+            break;
+
+        /* Lower action button - can either be DPAD_CENTER or BUTTON_Z depending on device mode */
+        case KeyEvent.KEYCODE_DPAD_CENTER:
+        case KeyEvent.KEYCODE_BUTTON_Z:
+            break;
+            
+           /* Left action button */
+        case KeyEvent.KEYCODE_BUTTON_X:
+        	if (pressed) {
+        		Random rand = new Random();
+    			mRenderer.pyrX = rand.nextFloat()*8 - 4.0f;
+    			mRenderer.pyrY = rand.nextFloat()*8 - 4.0f;
+    			mRenderer.pyrZ = rand.nextFloat()*(-8) - 2.0f;
+    		}
+            break;
+            
+        default:
+            return false;
+        }
+        return true;
+    }
 }
