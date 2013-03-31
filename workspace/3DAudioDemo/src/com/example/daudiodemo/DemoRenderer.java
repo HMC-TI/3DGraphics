@@ -14,6 +14,7 @@ import javax.microedition.khronos.opengles.GL10;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.opengl.GLU;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -35,9 +36,13 @@ public class DemoRenderer implements GLSurfaceView.Renderer
     public volatile boolean upRotate = false;
     public volatile boolean downRotate = false;
     // For pyramid location randomizing functionality
- 	public volatile float pyrX = 0.0f;
+ 	public volatile float pyrX = 3.0f;
  	public volatile float pyrY = 0.0f;
- 	public volatile float pyrZ = -3.0f;
+ 	public volatile float pyrZ = -6.0f;
+ 	// For pyramid finding functionality
+ 	private boolean objectFound;
+ 	private int windowWidth;
+ 	private int windowHeight;
 	
 	// Store the model matrix. This matrix is used to move models from object space (where each model can be thought
 	// of being located at the center of the universe) to world space.
@@ -64,6 +69,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 	private final FloatBuffer mPyramidPositions;
 	private final FloatBuffer mPyramidColors;
 	private final FloatBuffer mPyramidNormals;
+	private final FloatBuffer mFoundPyramidColors;
 	
 	// This will be used to pass in the transformation matrix.
 	private int mMVPMatrixHandle;
@@ -318,6 +324,24 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 	    		0.0f, 1.0f, 0.0f, 1.0f 	//Green
 		};
 		
+		final float foundPyramidColorData[] = {
+				1.0f, 0.5f, 0.5f, 1.0f, //Red
+	    		0.5f, 1.0f, 0.5f, 1.0f, //Green
+	    		0.5f, 0.5f, 1.0f, 1.0f, //Blue
+	    		
+	    		1.0f, 0.5f, 0.5f, 1.0f, //Red
+	    		0.5f, 0.5f, 1.0f, 1.0f, //Blue
+	    		0.5f, 1.0f, 0.5f, 1.0f, //Green
+	    		
+	    		1.0f, 0.5f, 0.5f, 1.0f, //Red
+	    		0.5f, 1.0f, 0.5f, 1.0f, //Green
+	    		0.5f, 0.5f, 1.0f, 1.0f, //Blue
+	    		
+	    		1.0f, 0.5f, 0.5f, 1.0f, //Red
+	    		0.5f, 0.5f, 1.0f, 1.0f, //Blue
+	    		0.5f, 1.0f, 0.5f, 1.0f 	//Green
+		};
+		
 		/** The initial normal definition */
 		final float pyramidNormalData[] = { 
 			 	0.0f, 1.0f, 1.0f,		//Top Of Triangle (Front)
@@ -357,6 +381,10 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		mPyramidColors = ByteBuffer.allocateDirect(pyramidColorData.length * mBytesPerFloat)
         .order(ByteOrder.nativeOrder()).asFloatBuffer();							
 		mPyramidColors.put(pyramidColorData).position(0);
+		
+		mFoundPyramidColors = ByteBuffer.allocateDirect(foundPyramidColorData.length * mBytesPerFloat)
+        .order(ByteOrder.nativeOrder()).asFloatBuffer();							
+		mFoundPyramidColors.put(foundPyramidColorData).position(0);
 		
 		mPyramidNormals = ByteBuffer.allocateDirect(pyramidNormalData.length * mBytesPerFloat)
         .order(ByteOrder.nativeOrder()).asFloatBuffer();							
@@ -489,6 +517,9 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 	{
 		// Set the OpenGL viewport to the same size as the surface.
 		GLES20.glViewport(0, 0, width, height);
+		windowWidth = width;
+		windowHeight = height;
+		Log.d(TAG, "width: " + width + "height: " + height);
 
 		// Create a new perspective projection matrix. The height will stay the same
 		// while the width will vary as per aspect ratio.
@@ -509,7 +540,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);			        
         
 		long time = SystemClock.uptimeMillis() % 10000L;
-		Log.d(TAG, "time: " + time);
+//		Log.d(TAG, "time: " + time);
 		
 		// Do a complete rotation every 10 seconds.     
         float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
@@ -566,7 +597,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         Matrix.translateM(mModelMatrix, 0, pyrX, pyrY+0.4f, pyrZ);
         Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, -1.0f, 0.0f);
         Matrix.scaleM(mModelMatrix, 0, 0.2f, 0.2f, 0.2f);
-        drawPyramid(GLES20.GL_CCW);  
+        drawPyramid(GLES20.GL_CCW, objectFound);  
         
         Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.translateM(mModelMatrix, 0, pyrX, pyrY-0.4f, pyrZ);
@@ -574,7 +605,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, -1.0f, 0.0f);
         Matrix.scaleM(mModelMatrix, 0, 0.2f, 0.2f, 0.2f);
         Matrix.translateM(mModelMatrix, 0, 0.0f, -2.0f, 0.0f);
-        drawPyramid(GLES20.GL_CW);
+        drawPyramid(GLES20.GL_CW, objectFound);
         
         // Draw a point to indicate the light.
         GLES20.glUseProgram(mPointProgramHandle);        
@@ -604,7 +635,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		final float eyeX = 0.0f;
 		final float eyeY = 0.0f;
 		final float eyeZ = -6.0f;
-
+		
 		// We are looking toward the distance
 		final float lookX = 5.0f*FloatMath.cos(theta)*FloatMath.sin(phi);
 		final float lookY = 5.0f*FloatMath.cos(phi);
@@ -616,7 +647,45 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		final float upZ = 0.0f;
         
 		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
+		
+		// Convert object 3D coordinates to 2D window coordinates
+		int [] view = new int[]{windowWidth, windowHeight};
+		float [] spacePos = new float []{pyrX, pyrY, pyrZ, 1.0f};
+		float [] clipSpacePosIntermediate = new float[4];
+		float [] clipSpacePos = new float[4];
+		
+		// Convert object coordinates to clip space coordinates
+		Matrix.multiplyMV(clipSpacePosIntermediate, 0, mViewMatrix, 0, spacePos, 0);
+		Matrix.multiplyMV(clipSpacePos, 0, mProjectionMatrix, 0, clipSpacePosIntermediate, 0);
+		
+		// Normalize using w coordinate
+		float [] ndcSpacePos = new float[3];
+		ndcSpacePos[0] = clipSpacePos[0]/clipSpacePos[3];
+		ndcSpacePos[1] = clipSpacePos[1]/clipSpacePos[3];
+		ndcSpacePos[2] = clipSpacePos[2]/clipSpacePos[3];
+		
+		// Convert to 2D
+		float [] outputCoords = new float[2];
+		outputCoords[0] = ((ndcSpacePos[0] + 1.0f) / 2.0f) * view[0];
+		outputCoords[1] = ((ndcSpacePos[1] + 1.0f) / 2.0f) * view[1];
+//		Log.d(TAG, "Output coordinates: " + outputCoords[0] + " " + outputCoords[1]);
+		
+		// Check if octahedron is displayed in center of viewscreen
+ 		if (outputCoords[0] > view[0]/2 - 50 && outputCoords[0] < view[0]/2 + 50) {
+ 			if (outputCoords[1] > view[1]/2 - 50 && outputCoords[1] < view[1]/2 + 50) {
+ 				objectFound = true;
+ 			} else {
+ 				objectFound = false;
+ 			}
+ 		} else {
+ 			objectFound = false;
+ 		}
 	}				
+	
+	public boolean hasBeenFound()
+	{
+		return objectFound;
+	}
 	
 	// Draws a cube.
 	private void drawCube(int mode)
@@ -666,7 +735,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);                               
 	}	
 	
-	private void drawPyramid(int mode)
+	private void drawPyramid(int mode, boolean found)
 	{		
 		// Set face rotation
 		GLES20.glFrontFace(mode);
@@ -678,10 +747,16 @@ public class DemoRenderer implements GLSurfaceView.Renderer
                 
         GLES20.glEnableVertexAttribArray(mPositionHandle);        
         
-        // Pass in the color information
-        mPyramidColors.position(0);
-        GLES20.glVertexAttribPointer(mColorHandle, mColorDataSize, GLES20.GL_FLOAT, false,
-        		0, mPyramidColors);        
+        // Pass in the color information depending on whether or not it has been found
+        if (found) {
+        	mFoundPyramidColors.position(0);
+            GLES20.glVertexAttribPointer(mColorHandle, mColorDataSize, GLES20.GL_FLOAT, false,
+            		0, mFoundPyramidColors); 
+        } else {
+        	mPyramidColors.position(0);
+            GLES20.glVertexAttribPointer(mColorHandle, mColorDataSize, GLES20.GL_FLOAT, false,
+            		0, mPyramidColors); 
+        }       
         
         GLES20.glEnableVertexAttribArray(mColorHandle);
         

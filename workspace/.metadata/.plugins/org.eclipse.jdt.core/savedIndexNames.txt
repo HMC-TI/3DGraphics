@@ -2,7 +2,6 @@ INDEX VERSION 1.126+C:\Users\Admin\Documents\GitHub\3DGraphics\workspace\.metada
 937776180.index
 1433447151.index
 766193153.index
-1292058606.index
 1823420771.index
 3867398006.index
 3184471101.index

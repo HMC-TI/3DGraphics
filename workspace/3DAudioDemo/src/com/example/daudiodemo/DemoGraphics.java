@@ -166,10 +166,12 @@ class MyGLSurfaceView extends GLSurfaceView {
            /* Left action button */
         case KeyEvent.KEYCODE_BUTTON_X:
         	if (pressed) {
-        		Random rand = new Random();
-    			mRenderer.pyrX = rand.nextFloat()*8 - 4.0f;
-    			mRenderer.pyrY = rand.nextFloat()*8 - 4.0f;
-    			mRenderer.pyrZ = rand.nextFloat()*(-8) - 2.0f;
+        		if (mRenderer.hasBeenFound()) {
+	        		Random rand = new Random();
+	    			mRenderer.pyrX = rand.nextFloat()*8 - 4.0f;
+	    			mRenderer.pyrY = rand.nextFloat()*8 - 4.0f;
+	    			mRenderer.pyrZ = rand.nextFloat()*(-8) - 2.0f;
+        		}
     		}
             break;
             
