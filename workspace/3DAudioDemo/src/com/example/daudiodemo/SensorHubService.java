@@ -52,7 +52,6 @@ public class SensorHubService extends Service {
 		razor = new RazorAHRS(RazorExample.razorDevice, new RazorListener() {
 
 			public void onConnectAttempt(int attempt, int maxAttempts) {
-				System.out.println("Test");
 				Toast.makeText(
 						SensorHubService.this,
 						"Connect attempt " + attempt + " of " + maxAttempts
@@ -75,7 +74,7 @@ public class SensorHubService extends Service {
 			 * and yaw
 			 * 
 			 * This update method is called in the RazorAHRS profile, which is
-			 * what connects with the bluetooth
+			 * what connects with the Bluetooth
 			 **************************************************************/
 			public void onAnglesUpdate(float yaw, float pitch, float roll) {
 				// Calibration.rollTextViewCal.setText(String.format("%.1f",
@@ -102,8 +101,9 @@ public class SensorHubService extends Service {
 			public void onIOExceptionAndDisconnect(IOException e) {
 				Toast.makeText(
 						SensorHubService.this,
-						"Disconnected, an error occured: " + e.getMessage()
-								+ ".", Toast.LENGTH_SHORT).show();
+						"Disconnected, an error occured: " + e.getMessage()+ ".", Toast.LENGTH_SHORT).show();
+				
+				RazorExample.setButtonStateDisconnected();
 			}
 
 		});
@@ -111,20 +111,14 @@ public class SensorHubService extends Service {
 		// Connect asynchronously
 		razor.asyncConnect(5); // 5 connect attempts
 
-		RazorExample.connectButton.setEnabled(false);
-		RazorExample.connectButton.setText("Connected");
-
-		RazorExample.cancelButton.setEnabled(true);
-		RazorExample.cancelButton.setText("Cancel");
-
-		RazorExample.zeroButton.setEnabled(true);
+		RazorExample.setButtonStateConnected();
 	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 		this.razor.asyncDisconnect();
-		System.out.println("DESTROYED!");
+		Toast.makeText(SensorHubService.this, "Disconnected", Toast.LENGTH_SHORT).show();
 	}
 }
 
