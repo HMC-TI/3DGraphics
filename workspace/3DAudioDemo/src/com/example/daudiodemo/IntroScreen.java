@@ -9,25 +9,25 @@ import android.view.View;
 import android.widget.Button;
 
 public class IntroScreen extends Activity {
-	
+
 	public static Button beginButton;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		setContentView(R.layout.activity_intro_screen);
-		
-		beginButton = (Button)findViewById(R.id.begin_button);
-	    beginButton.setOnClickListener(new View.OnClickListener() {
+
+		beginButton = (Button) findViewById(R.id.begin_button);
+		beginButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View view) {
-				
+
 				Intent calibrateIntent = new Intent(IntroScreen.this,
 						RazorExample.class);
-				
+
 				startActivity(calibrateIntent);
-				
+
 			}
 		});
 	}

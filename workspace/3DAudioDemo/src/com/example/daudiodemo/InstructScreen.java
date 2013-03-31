@@ -11,29 +11,28 @@ import android.view.View;
 import android.widget.Button;
 
 public class InstructScreen extends Activity {
-	
+
 	public static Button playButton;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		setContentView(R.layout.activity_instruct_screen);
-		
-		playButton = (Button)findViewById(R.id.play_button);
-	    playButton.setOnClickListener(new View.OnClickListener() {
+
+		playButton = (Button) findViewById(R.id.play_button);
+		playButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View view) {
-				
+
 				Intent graphicsIntent = new Intent(InstructScreen.this,
 						DemoGraphics.class);
-				
+
 				startActivity(graphicsIntent);
-				
+
 			}
 		});
-		
-		
+
 	}
 
 	@Override

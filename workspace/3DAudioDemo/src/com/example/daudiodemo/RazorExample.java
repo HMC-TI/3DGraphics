@@ -188,10 +188,11 @@ public class RazorExample extends Activity {
 	public static void setButtonStateConnecting() {
 		// Disable connect button and set text
 		connectButton.setEnabled(false);
-		connectButton.setText("Connecting &#8230;");
+		connectButton.setText("Connecting...");
 
 		// Enable cancel button
 		cancelButton.setEnabled(true);
+		beginButton.setEnabled(false);
 	}
 
 	public static void setButtonStateConnected() {

@@ -45,8 +45,7 @@ public class SensorHubService extends Service {
 		super.onCreate();
 		Log.d(TAG, "onCreate");
 
-		Toast.makeText(SensorHubService.this, "Sensor Hub Service Created ...",
-				Toast.LENGTH_SHORT).show();
+		//Toast.makeText(SensorHubService.this, "Sensor Hub Service Created ...", Toast.LENGTH_SHORT).show();
 
 		// Create new razor instance and set listener
 		razor = new RazorAHRS(RazorExample.razorDevice, new RazorListener() {
@@ -118,7 +117,7 @@ public class SensorHubService extends Service {
 	public void onDestroy() {
 		super.onDestroy();
 		this.razor.asyncDisconnect();
-		Toast.makeText(SensorHubService.this, "Disconnected", Toast.LENGTH_SHORT).show();
+		//Toast.makeText(SensorHubService.this, "Disconnected", Toast.LENGTH_SHORT).show();
 	}
 }
 
