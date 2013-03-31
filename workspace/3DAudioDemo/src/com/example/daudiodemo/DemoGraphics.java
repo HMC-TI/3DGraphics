@@ -11,171 +11,179 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.view.KeyEvent;
 
-public class DemoGraphics extends Activity 
-{
+public class DemoGraphics extends Activity {
 	private BroadcastReceiver mReceiver;
 	/** Hold a reference to our GLSurfaceView */
-	public MyGLSurfaceView mGLSurfaceView;
+	private MyGLSurfaceView mGLSurfaceView;
 
 	@Override
-	public void onCreate(Bundle savedInstanceState) 
-	{
+	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mGLSurfaceView = new MyGLSurfaceView(this);
 		mReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {}
-        };
+			@Override
+			public void onReceive(Context context, Intent intent) {
+			}
+		};
 		setContentView(mGLSurfaceView);
 	}
 
 	@Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mReceiver = null;
-    }
+	protected void onDestroy() {
+		super.onDestroy();
+		mReceiver = null;
+	}
 
 	@Override
-	protected void onResume() 
-	{
-		// The activity must call the GL surface view's onResume() on activity onResume().
-		/* Register a listener to detect when Gametel devices connects/disconnects */
-        IntentFilter filter = new IntentFilter();
-        /* For devices in RFCOMM mode (which uses the InputMethod) */
-        filter.addAction(Intent.ACTION_INPUT_METHOD_CHANGED); 
-        /* For devices in HID mode */
-        filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED); 
-        registerReceiver(mReceiver, filter);
-        
+	protected void onResume() {
+		// The activity must call the GL surface view's onResume() on activity
+		// onResume().
+		/*
+		 * Register a listener to detect when Gametel devices
+		 * connects/disconnects
+		 */
+		IntentFilter filter = new IntentFilter();
+		/* For devices in RFCOMM mode (which uses the InputMethod) */
+		filter.addAction(Intent.ACTION_INPUT_METHOD_CHANGED);
+		/* For devices in HID mode */
+		filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
+		registerReceiver(mReceiver, filter);
+
 		super.onResume();
 		mGLSurfaceView.onResume();
 	}
 
 	@Override
-	protected void onPause() 
-	{
+	protected void onPause() {
 		unregisterReceiver(mReceiver);
-		// The activity must call the GL surface view's onPause() on activity onPause().
+		// The activity must call the GL surface view's onPause() on activity
+		// onPause().
 		super.onPause();
 		mGLSurfaceView.onPause();
 	}
 
 	@Override
-    public boolean onKeyDown (int keyCode, KeyEvent event) {
-        if (!mGLSurfaceView.handleKeyEvent(keyCode, event))
-            return super.onKeyDown(keyCode, event);
-        return true;
-    }
-    
-    @Override
-    public boolean onKeyUp (int keyCode, KeyEvent event) {
-        if (!mGLSurfaceView.handleKeyEvent(keyCode, event))
-            return super.onKeyDown(keyCode, event);
-        return true;
-    }
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (!mGLSurfaceView.handleKeyEvent(keyCode, event))
+			return super.onKeyDown(keyCode, event);
+		return true;
+	}
+
+	@Override
+	public boolean onKeyUp(int keyCode, KeyEvent event) {
+		if (!mGLSurfaceView.handleKeyEvent(keyCode, event))
+			return super.onKeyDown(keyCode, event);
+		return true;
+	}
 }
 
 class MyGLSurfaceView extends GLSurfaceView {
 
-    public final DemoRenderer mRenderer;
+	private final DemoRenderer mRenderer;
 
-    public MyGLSurfaceView(Context context) {
-        super(context);
+	public MyGLSurfaceView(Context context) {
+		super(context);
 
-        // Create an OpenGL ES 2.0 context.
-        setEGLContextClientVersion(2);
+		// Create an OpenGL ES 2.0 context.
+		setEGLContextClientVersion(2);
 
-        // Set the Renderer for drawing on the GLSurfaceView
-        mRenderer = new DemoRenderer();
-        setRenderer(mRenderer);
-    }
-    
-    /* Help function to parse the Gametel key */ 
-    public boolean handleKeyEvent(int keyCode, KeyEvent event) {
-        boolean pressed = event.getAction() == KeyEvent.ACTION_DOWN;
-        
-        switch (keyCode) {
-        
-        /* Upper navigation button */
-        case KeyEvent.KEYCODE_DPAD_UP:
-        	if (pressed) {
-        		mRenderer.upRotate = true;
-        	} else {
-        		mRenderer.upRotate = false;
-        	}
-            break;
-            
-           /* Right navigation button */
-        case KeyEvent.KEYCODE_DPAD_RIGHT:
-        	if (pressed) {
-        		mRenderer.rightRotate = true;
-        	} else {
-        		mRenderer.rightRotate = false;
-        	}
-            break;
-            
-        /* Lower navigation button */
-        case KeyEvent.KEYCODE_DPAD_DOWN:
-        	if (pressed) {
-        		mRenderer.downRotate = true;
-        	} else {
-        		mRenderer.downRotate = false;
-        	}
-            break;
-            
-        /* Left navigation button */
-        case KeyEvent.KEYCODE_DPAD_LEFT:
-        	if (pressed) {
-        		mRenderer.leftRotate = true;
-        	} else {
-        		mRenderer.leftRotate = false;
-        	}
-            break;
-                        
-        /* Start button */
-        case KeyEvent.KEYCODE_BUTTON_START:
-            break;
-            
-        /* Select button */
-        case KeyEvent.KEYCODE_BUTTON_SELECT:
-            break;
-            
-        /* Left trigger button */
-        case KeyEvent.KEYCODE_BUTTON_L1:
-            break;
-            
-        /* Right trigger button */
-        case KeyEvent.KEYCODE_BUTTON_R1:
-            break;
+		// Set the Renderer for drawing on the GLSurfaceView
+		mRenderer = new DemoRenderer();
+		setRenderer(mRenderer);
+	}
 
-        /* Upper action button */
-        case KeyEvent.KEYCODE_BUTTON_Y:
-            break;
-            
-           /* Right action button - can either be BACK+ALT or BUTTON_C depending on device mode */
-        case KeyEvent.KEYCODE_BACK:
-            break;
-        case KeyEvent.KEYCODE_BUTTON_C:
-            break;
+	/* Help function to parse the Gametel key */
+	public boolean handleKeyEvent(int keyCode, KeyEvent event) {
+		boolean pressed = event.getAction() == KeyEvent.ACTION_DOWN;
 
-        /* Lower action button - can either be DPAD_CENTER or BUTTON_Z depending on device mode */
-        case KeyEvent.KEYCODE_DPAD_CENTER:
-        case KeyEvent.KEYCODE_BUTTON_Z:
-            break;
-            
-           /* Left action button */
-        case KeyEvent.KEYCODE_BUTTON_X:
-        	if (pressed) {
-        		Random rand = new Random();
-    			mRenderer.pyrX = rand.nextFloat()*8 - 4.0f;
-    			mRenderer.pyrY = rand.nextFloat()*8 - 4.0f;
-    			mRenderer.pyrZ = rand.nextFloat()*(-8) - 2.0f;
-    		}
-            break;
-            
-        default:
-            return false;
-        }
-        return true;
-    }
+		switch (keyCode) {
+
+		/* Upper navigation button */
+		case KeyEvent.KEYCODE_DPAD_UP:
+			if (pressed) {
+				mRenderer.upRotate = true;
+			} else {
+				mRenderer.upRotate = false;
+			}
+			break;
+
+		/* Right navigation button */
+		case KeyEvent.KEYCODE_DPAD_RIGHT:
+			if (pressed) {
+				mRenderer.rightRotate = true;
+			} else {
+				mRenderer.rightRotate = false;
+			}
+			break;
+
+		/* Lower navigation button */
+		case KeyEvent.KEYCODE_DPAD_DOWN:
+			if (pressed) {
+				mRenderer.downRotate = true;
+			} else {
+				mRenderer.downRotate = false;
+			}
+			break;
+
+		/* Left navigation button */
+		case KeyEvent.KEYCODE_DPAD_LEFT:
+			if (pressed) {
+				mRenderer.leftRotate = true;
+			} else {
+				mRenderer.leftRotate = false;
+			}
+			break;
+
+		/* Start button */
+		case KeyEvent.KEYCODE_BUTTON_START:
+			break;
+
+		/* Select button */
+		case KeyEvent.KEYCODE_BUTTON_SELECT:
+			break;
+
+		/* Left trigger button */
+		case KeyEvent.KEYCODE_BUTTON_L1:
+			break;
+
+		/* Right trigger button */
+		case KeyEvent.KEYCODE_BUTTON_R1:
+			break;
+
+		/* Upper action button */
+		case KeyEvent.KEYCODE_BUTTON_Y:
+			break;
+
+		/*
+		 * Right action button - can either be BACK+ALT or BUTTON_C depending on
+		 * device mode
+		 */
+		case KeyEvent.KEYCODE_BACK:
+			break;
+		case KeyEvent.KEYCODE_BUTTON_C:
+			break;
+
+		/*
+		 * Lower action button - can either be DPAD_CENTER or BUTTON_Z depending
+		 * on device mode
+		 */
+		case KeyEvent.KEYCODE_DPAD_CENTER:
+		case KeyEvent.KEYCODE_BUTTON_Z:
+			break;
+
+		/* Left action button */
+		case KeyEvent.KEYCODE_BUTTON_X:
+			if (pressed) {
+				Random rand = new Random();
+				mRenderer.pyrX = rand.nextFloat() * 8 - 4.0f;
+				mRenderer.pyrY = rand.nextFloat() * 8 - 4.0f;
+				mRenderer.pyrZ = rand.nextFloat() * (-8) - 2.0f;
+			}
+			break;
+
+		default:
+			return false;
+		}
+		return true;
+	}
 }

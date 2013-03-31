@@ -216,7 +216,7 @@ public class RazorExample extends Activity {
 	protected void onStop() {
 		super.onStop();
 		Log.d(TAG, "onStop");
-		stopService(new Intent(RazorExample.this,SensorHubService.class));
+		
 		
 		//if (razor != null)
 		//	razor.asyncDisconnect();
