@@ -39,6 +39,11 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 	public volatile float pyrY = 0.0f;
 	public volatile float pyrZ = -3.0f;
 
+	// For pyramid finding functionality
+	private boolean objectFound;
+	private int windowWidth;
+	private int windowHeight;
+
 	// Store the model matrix. This matrix is used to move models from object
 	// space (where each model can be thought
 	// of being located at the center of the universe) to world space.
@@ -654,8 +659,8 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 
 		// We are looking toward the distance
 
-		float rollRadians = (float) SensorHubService.caliRoll / 180
-				* (float) Math.PI;
+		// float rollRadians = (float) SensorHubService.caliRoll / 180* (float)
+		// Math.PI;
 		float pitchRadians = (float) SensorHubService.caliPitch / 180
 				* (float) Math.PI;
 		float yawRadians = (float) SensorHubService.caliYaw / 180
@@ -681,6 +686,48 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 
 		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY,
 				lookZ, upX, upY, upZ);
+
+		// Convert object 3D coordinates to 2D window coordinates
+		int[] view = new int[] { windowWidth, windowHeight };
+		float[] spacePos = new float[] { pyrX, pyrY, pyrZ, 1.0f };
+		float[] clipSpacePosIntermediate = new float[4];
+		float[] clipSpacePos = new float[4];
+
+		// Convert object coordinates to clip space coordinates
+		Matrix.multiplyMV(clipSpacePosIntermediate, 0, mViewMatrix, 0,
+				spacePos, 0);
+		Matrix.multiplyMV(clipSpacePos, 0, mProjectionMatrix, 0,
+				clipSpacePosIntermediate, 0);
+
+		// Normalize using w coordinate
+		float[] ndcSpacePos = new float[3];
+		ndcSpacePos[0] = clipSpacePos[0] / clipSpacePos[3];
+		ndcSpacePos[1] = clipSpacePos[1] / clipSpacePos[3];
+		ndcSpacePos[2] = clipSpacePos[2] / clipSpacePos[3];
+
+		// Convert to 2D
+		float[] outputCoords = new float[2];
+		outputCoords[0] = ((ndcSpacePos[0] + 1.0f) / 2.0f) * view[0];
+		outputCoords[1] = ((ndcSpacePos[1] + 1.0f) / 2.0f) * view[1];
+		// Log.d(TAG, "Output coordinates: " + outputCoords[0] + " " +
+		// outputCoords[1]);
+
+		// Check if octahedron is displayed in center of viewscreen
+		if (outputCoords[0] > view[0] / 2 - 50
+				&& outputCoords[0] < view[0] / 2 + 50) {
+			if (outputCoords[1] > view[1] / 2 - 50
+					&& outputCoords[1] < view[1] / 2 + 50) {
+				objectFound = true;
+			} else {
+				objectFound = false;
+			}
+		} else {
+			objectFound = false;
+		}
+	}
+
+	public boolean hasBeenFound() {
+		return objectFound;
 	}
 
 	// Draws a cube.
@@ -785,6 +832,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 	/**
 	 * Draws a point representing the position of the light.
 	 */
+	@SuppressWarnings("unused")
 	private void drawLight() {
 		final int pointMVPMatrixHandle = GLES20.glGetUniformLocation(
 				mPointProgramHandle, "u_MVPMatrix");

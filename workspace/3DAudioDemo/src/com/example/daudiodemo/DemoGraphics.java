@@ -7,12 +7,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.ActivityInfo;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.view.KeyEvent;
 
 public class DemoGraphics extends Activity {
+	
+	public static boolean startQuit;
+	
 	private BroadcastReceiver mReceiver;
 	/** Hold a reference to our GLSurfaceView */
 	private MyGLSurfaceView mGLSurfaceView;
@@ -20,10 +22,10 @@ public class DemoGraphics extends Activity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+
 		// Make the orientation landscape due to hardware setup
-		//setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-		
+		// setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
 		mGLSurfaceView = new MyGLSurfaceView(this);
 		mReceiver = new BroadcastReceiver() {
 			@Override
@@ -37,6 +39,7 @@ public class DemoGraphics extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 		mReceiver = null;
+		
 	}
 
 	@Override
@@ -179,10 +182,12 @@ class MyGLSurfaceView extends GLSurfaceView {
 		/* Left action button */
 		case KeyEvent.KEYCODE_BUTTON_X:
 			if (pressed) {
-				Random rand = new Random();
-				mRenderer.pyrX = rand.nextFloat() * 8 - 4.0f;
-				mRenderer.pyrY = rand.nextFloat() * 8 - 4.0f;
-				mRenderer.pyrZ = rand.nextFloat() * (-8) - 2.0f;
+				if (mRenderer.hasBeenFound()) {
+					Random rand = new Random();
+					mRenderer.pyrX = rand.nextFloat() * 8 - 4.0f;
+					mRenderer.pyrY = rand.nextFloat() * 8 - 4.0f;
+					mRenderer.pyrZ = rand.nextFloat() * (-8) - 2.0f;
+				}
 			}
 			break;
 
@@ -191,4 +196,5 @@ class MyGLSurfaceView extends GLSurfaceView {
 		}
 		return true;
 	}
+	
 }

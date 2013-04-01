@@ -60,6 +60,7 @@ public class SensorHubService extends Service {
 			public void onConnectOk() {
 				Toast.makeText(SensorHubService.this, "Connected!",
 						Toast.LENGTH_SHORT).show();
+				RazorExample.setButtonStateConnected();
 			}
 
 			public void onConnectFail(Exception e) {
@@ -110,7 +111,7 @@ public class SensorHubService extends Service {
 		// Connect asynchronously
 		razor.asyncConnect(5); // 5 connect attempts
 
-		RazorExample.setButtonStateConnected();
+
 	}
 
 	@Override

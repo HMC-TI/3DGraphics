@@ -11,7 +11,7 @@
     <string name="select_device">Please select your Razor AHRS Bluetooth device:</string>
     <string name="paired_warning">You can only connect to paired devices. If you cannot find your Razor AHRS, go to system options and make sure it is paired.</string>
     <string name="instruct_message">Gameplay instructions here!</string>
-    <string name="intro_button">Begin</string>
+    <string name="intro_button">Calibrate</string>
     <string name="begin_button">Begin Game</string>
     <string name="play_button">Play</string>
     <string name="connect_button_connect">Connect</string>

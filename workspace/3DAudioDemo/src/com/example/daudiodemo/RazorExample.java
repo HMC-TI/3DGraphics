@@ -29,7 +29,6 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import de.tuberlin.qu.razorahrs.RazorAHRS;
-import de.tuberlin.qu.razorahrs.RazorListener;
 
 public class RazorExample extends Activity {
 
@@ -65,7 +64,11 @@ public class RazorExample extends Activity {
 		// Make the orientation landscape due to hardware setup
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
+		// Set view
 		setContentView(R.layout.main);
+		
+		// Enable up-button for ancestral navigation
+		//getActionBar().setDisplayHomeAsUpEnabled(true);
 
 
 		// Find views
@@ -213,6 +216,15 @@ public class RazorExample extends Activity {
 
 		if (razor != null)
 			razor.asyncDisconnect();
+	}
+	
+	@Override
+	protected void onDestroy(){
+		super.onDestroy();
+		Log.d(TAG, "onDestroy");
+		
+		stopService(new Intent(RazorExample.this,
+				SensorHubService.class));
 	}
 
 }

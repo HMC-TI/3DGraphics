@@ -10,7 +10,7 @@ import android.widget.Button;
 
 public class IntroScreen extends Activity {
 
-	public static Button beginButton;
+	public static Button introButton;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -19,8 +19,8 @@ public class IntroScreen extends Activity {
 		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 		setContentView(R.layout.activity_intro_screen);
 
-		beginButton = (Button) findViewById(R.id.begin_button);
-		beginButton.setOnClickListener(new View.OnClickListener() {
+		introButton = (Button) findViewById(R.id.intro_button);
+		introButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View view) {
 
 				Intent calibrateIntent = new Intent(IntroScreen.this,
