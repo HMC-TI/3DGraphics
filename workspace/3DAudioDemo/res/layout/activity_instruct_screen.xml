@@ -2,27 +2,39 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:gravity="center"
+    android:orientation="vertical"
     tools:context=".InstructScreen" >
 
-	<TextView
-	    android:layout_width="wrap_content"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="@string/instruct_message" />
-        
-	<LinearLayout
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-		android:layout_gravity="center">
-	    
-		<Button
-		    android:id="@+id/play_button"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:text="@string/play_button" />
-		
-	</LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" >
+
+        <ImageView
+            android:id="@+id/button_gametel"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:contentDescription="@string/button_gametel_description"
+            android:src="@drawable/button_gametel" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" >
+
+        <Button
+            android:id="@+id/play_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/play_button" />
+    </LinearLayout>
 
 </LinearLayout>
