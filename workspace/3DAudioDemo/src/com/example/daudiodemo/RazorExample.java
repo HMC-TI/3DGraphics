@@ -117,12 +117,13 @@ public class RazorExample extends Activity {
 
 			public void onClick(View v) {
 
-				SensorHubService.initRoll = roll;
+				/* We decided not to collect initial values
+				 * SensorHubService.initRoll = roll;
 				SensorHubService.initPitch = pitch;
 				SensorHubService.initYaw = yaw;
 
 				Toast.makeText(RazorExample.this, "Initial Values Collected!",
-						Toast.LENGTH_SHORT).show();
+						Toast.LENGTH_SHORT).show();*/
 
 				Intent instructIntent = new Intent(RazorExample.this,
 						InstructScreen.class);

@@ -29,7 +29,6 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 	private float theta;
 	private float phi = 3.14159265359f / 2;
 
-	public volatile boolean found = false;
 	public volatile boolean leftRotate = false;
 	public volatile boolean rightRotate = false;
 	public volatile boolean upRotate = false;
@@ -72,6 +71,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 
 	private final FloatBuffer mPyramidPositions;
 	private final FloatBuffer mPyramidColors;
+	private final FloatBuffer mFoundPyramidColors;
 	private final FloatBuffer mPyramidNormals;
 
 	// This will be used to pass in the transformation matrix.
@@ -289,7 +289,8 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 				-1.0f, -1.0f, 1.0f // Right Of Triangle (Left)
 		};
 		/** The initial color definition */
-		final float pyramidColorData[] = { 1.0f, 0.0f, 0.0f, 1.0f, // Red
+		final float pyramidColorData[] = { 
+				1.0f, 0.0f, 0.0f, 1.0f, // Red
 				0.0f, 1.0f, 0.0f, 1.0f, // Green
 				0.0f, 0.0f, 1.0f, 1.0f, // Blue
 
@@ -304,6 +305,24 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 				1.0f, 0.0f, 0.0f, 1.0f, // Red
 				0.0f, 0.0f, 1.0f, 1.0f, // Blue
 				0.0f, 1.0f, 0.0f, 1.0f // Green
+		};
+		
+		final float foundPyramidColorData[] = { 
+				1.0f, 0.7f, 0.7f, 1.0f, // Red
+				0.7f, 1.0f, 0.7f, 1.0f, // Green
+				0.7f, 0.7f, 1.0f, 1.0f, // Blue
+
+				1.0f, 0.7f, 0.7f, 1.0f, // Red
+				0.7f, 0.7f, 1.0f, 1.0f, // Blue
+				0.7f, 1.0f, 0.7f, 1.0f, // Green
+
+				1.0f, 0.7f, 0.7f, 1.0f, // Red
+				0.7f, 1.0f, 0.7f, 1.0f, // Green
+				0.7f, 0.7f, 1.0f, 1.0f, // Blue
+
+				1.0f, 0.7f, 0.7f, 1.0f, // Red
+				0.7f, 0.7f, 1.0f, 1.0f, // Blue
+				0.7f, 1.0f, 0.7f, 1.0f // Green
 		};
 
 		/** The initial normal definition */
@@ -350,6 +369,11 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 				.allocateDirect(pyramidColorData.length * mBytesPerFloat)
 				.order(ByteOrder.nativeOrder()).asFloatBuffer();
 		mPyramidColors.put(pyramidColorData).position(0);
+		
+		mFoundPyramidColors = ByteBuffer
+				.allocateDirect(foundPyramidColorData.length * mBytesPerFloat)
+				.order(ByteOrder.nativeOrder()).asFloatBuffer();
+		mFoundPyramidColors.put(foundPyramidColorData).position(0);
 
 		mPyramidNormals = ByteBuffer
 				.allocateDirect(pyramidNormalData.length * mBytesPerFloat)
@@ -532,6 +556,8 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 	public void onSurfaceChanged(GL10 glUnused, int width, int height) {
 		// Set the OpenGL viewport to the same size as the surface.
 		GLES20.glViewport(0, 0, width, height);
+		windowWidth = width;
+		windowHeight = height;
 
 		// Create a new perspective projection matrix. The height will stay the
 		// same
@@ -617,7 +643,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		Matrix.translateM(mModelMatrix, 0, pyrX, pyrY + 0.4f, pyrZ);
 		Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, -1.0f, 0.0f);
 		Matrix.scaleM(mModelMatrix, 0, 0.2f, 0.2f, 0.2f);
-		drawPyramid(GLES20.GL_CCW);
+		drawPyramid(GLES20.GL_CCW, objectFound);
 
 		Matrix.setIdentityM(mModelMatrix, 0);
 		Matrix.translateM(mModelMatrix, 0, pyrX, pyrY - 0.4f, pyrZ);
@@ -625,7 +651,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, -1.0f, 0.0f);
 		Matrix.scaleM(mModelMatrix, 0, 0.2f, 0.2f, 0.2f);
 		Matrix.translateM(mModelMatrix, 0, 0.0f, -2.0f, 0.0f);
-		drawPyramid(GLES20.GL_CW);
+		drawPyramid(GLES20.GL_CW, objectFound);
 
 		// Draw a point to indicate the light.
 		GLES20.glUseProgram(mPointProgramHandle);
@@ -659,11 +685,11 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 
 		// We are looking toward the distance
 
-		// float rollRadians = (float) SensorHubService.caliRoll / 180* (float)
+		// float rollRadians = (float) SensorHubService.roll / 180* (float)
 		// Math.PI;
-		float pitchRadians = (float) SensorHubService.caliPitch / 180
+		float pitchRadians = (float) SensorHubService.pitch / 180
 				* (float) Math.PI;
-		float yawRadians = (float) SensorHubService.caliYaw / 180
+		float yawRadians = (float) SensorHubService.yaw / 180
 				* (float) Math.PI;
 
 		/*
@@ -672,11 +698,28 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		 * rotation around the z-aix
 		 */
 
+		
 		final float lookX = 5.0f * FloatMath.cos(-pitchRadians)
 				* FloatMath.sin(-yawRadians);
 		final float lookY = 5.0f * FloatMath.sin(-pitchRadians);
 		final float lookZ = 5.0f * FloatMath.cos(-pitchRadians)
 				* FloatMath.cos(-yawRadians) - 6.0f;
+		
+		// These are the relative az and elev that will allow us to calculate the needed az and elev for the audio
+		// Spherical coordinates describing where we are looking
+		final float rLook = FloatMath.sqrt(lookX*lookX+lookY*lookY+lookZ*lookZ);
+		final float elevLook = (float) Math.acos((double)lookZ/rLook);
+		final float azLook = (float) Math.atan((double)lookY/lookX);
+		// These are the relative az and elev that will allow us to calculate the needed az and elev for the audio
+		// Spherical coordinates describing the location of the object emitting noise
+		final float rPyr = FloatMath.sqrt(pyrX*pyrX+pyrY*pyrY+pyrZ*pyrZ);
+		final float elevPyr = (float) Math.acos((double)pyrZ/rPyr);
+		final float azPyr = (float) Math.atan((double)pyrY/pyrX);
+		
+		// These values are the az and elev we need to use in our audio code:
+		// Our thinking was that if it's to the left we want the angle to be negative
+		SensorHubService.az = azPyr - azLook;
+		SensorHubService.elev = elevPyr - elevLook;
 
 		// Set our up vector. This is where our head would be pointing were we
 		// holding the camera.
@@ -780,7 +823,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
 	}
 
-	private void drawPyramid(int mode) {
+	private void drawPyramid(int mode, boolean found) {
 		// Set face rotation
 		GLES20.glFrontFace(mode);
 
@@ -792,9 +835,15 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		GLES20.glEnableVertexAttribArray(mPositionHandle);
 
 		// Pass in the color information
-		mPyramidColors.position(0);
-		GLES20.glVertexAttribPointer(mColorHandle, mColorDataSize,
-				GLES20.GL_FLOAT, false, 0, mPyramidColors);
+		if (found) {
+			mFoundPyramidColors.position(0);
+			GLES20.glVertexAttribPointer(mColorHandle, mColorDataSize,
+					GLES20.GL_FLOAT, false, 0, mFoundPyramidColors);
+		} else {
+			mPyramidColors.position(0);
+			GLES20.glVertexAttribPointer(mColorHandle, mColorDataSize,
+					GLES20.GL_FLOAT, false, 0, mPyramidColors);
+		}
 
 		GLES20.glEnableVertexAttribArray(mColorHandle);
 
