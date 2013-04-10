@@ -1,7 +1,6 @@
 package com.example.daudiodemo;
 
 import android.util.FloatMath;
-import java.util.Random;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -9,12 +8,10 @@ import java.nio.FloatBuffer;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-//import com.example.daudiodemo.Pyramid;
-
+import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
-import android.opengl.GLU;
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -27,10 +24,11 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 	// Used for debug logs.
 	private static final String TAG = "DemoRenderer";
 	
+	private final Context mActivityContext;
+	
 	// Declare as volatile because we are updating it from another thread
     private float theta;
     private float phi = 3.14159265359f/2;
-    public volatile boolean found = false;
     public volatile boolean leftRotate = false;
     public volatile boolean rightRotate = false;
     public volatile boolean upRotate = false;
@@ -65,6 +63,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 	private final FloatBuffer mCubePositions;
 	private final FloatBuffer mCubeColors;
 	private final FloatBuffer mCubeNormals;
+	private final FloatBuffer mCubeTextureCoordinates;
 	
 	private final FloatBuffer mPyramidPositions;
 	private final FloatBuffer mPyramidColors;
@@ -80,6 +79,9 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 	// This will be used to pass in the light position.
 	private int mLightPosHandle;
 	
+	// This will be used to pass in the texture.
+	private int mTextureUniformHandle;
+	
 	// This will be used to pass in model position information.
 	private int mPositionHandle;
 	
@@ -88,18 +90,24 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 	
 	// This will be used to pass in model normal information.
 	private int mNormalHandle;
+	
+	// This will be used to pass in model texture coordinate information.
+	private int mTextureCoordinateHandle;
 
 	// How many bytes per float.
 	private final int mBytesPerFloat = 4;	
 	
-	// Size of the position data in elements. */
+	// Size of the position data in elements.
 	private final int mPositionDataSize = 3;	
 	
-	// Size of the color data in elements. */
+	// Size of the color data in elements.
 	private final int mColorDataSize = 4;	
 	
-	// Size of the normal data in elements. */
+	// Size of the normal data in elements.
 	private final int mNormalDataSize = 3;
+	
+	// Size of the texture coordinate data in elements.
+	private final int mTextureCoordinateDataSize = 2;
 	
 	// Used to hold a light centered on the origin in model space. We need a 4th coordinate so we can get translations
 	// to work when we multiply this by our transformation matrices.
@@ -113,14 +121,25 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 	
 	// This is a handle to our per-vertex cube shading program.
 	private int mPerVertexProgramHandle;
+	
+	// This is a handle to our cube shading program.
+	private int mCubeProgramHandle;
+	
+	// This is a handle to our pyramid shading program.
+	private int mPyramidProgramHandle;
 		
 	// This is a handle to our light point program.
 	private int mPointProgramHandle;	
+	
+	// This is a handle to our texture data.
+	private int mTextureDataHandle;
 						
 	
 	// Initialize the model data. 
-	public DemoRenderer()
+	public DemoRenderer(final Context activityContext)
 	{	
+		mActivityContext = activityContext;
+		
 		// Define points for a cube.		
 		
 		// X, Y, Z
@@ -287,6 +306,63 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 				0.0f, -1.0f, 0.0f
 		};
 		
+		// S, T (or X, Y)
+		// Texture coordinate data.
+		// Because images have a Y axis pointing downward (values increase as you move down the image) while
+		// OpenGL has a Y axis pointing upward, we adjust for that here by flipping the Y axis.
+		// Since we are texturing the inside of a cubical room with a cube map texture, all of the
+		// faces are actually inverted. These coordinates work for a horizontal cross cube map.
+		final float[] cubeTextureCoordinateData =
+		{												
+				// Front face
+				0.0f, 2.0f/3, 				
+				0.0f, 1.0f/3,
+				0.25f, 2.0f/3,
+				0.0f, 1.0f/3,
+				0.25f, 1.0f/3,
+				0.25f, 2.0f/3,				
+				
+				// Right face 
+				0.25f, 2.0f/3, 				
+				0.25f, 1.0f/3,
+				0.5f, 2.0f/3,
+				0.25f, 1.0f/3,
+				0.5f, 1.0f/3,
+				0.5f, 2.0f/3,
+				
+				// Back face 
+				0.5f, 2.0f/3, 				
+				0.5f, 1.0f/3,
+				0.75f, 2.0f/3,
+				0.5f, 1.0f/3,
+				0.75f, 1.0f/3,
+				0.75f, 2.0f/3,
+				
+				// Left face 
+				0.75f, 2.0f/3, 				
+				0.75f, 1.0f/3,
+				1.0f, 2.0f/3,
+				0.75f, 1.0f/3,
+				1.0f, 1.0f/3,
+				1.0f, 2.0f/3,
+				
+				// Top face 
+				0.5f, 1.0f,
+				0.25f, 1.0f,
+				0.5f, 2.0f/3,
+				0.25f, 1.0f,
+				0.25f, 2.0f/3,
+				0.5f, 2.0f/3,
+				
+				// Bottom face
+				0.5f, 1.0f/3,
+				0.25f, 1.0f/3,
+				0.5f, 0.0f,
+				0.25f, 1.0f/3,
+				0.25f, 0.0f,
+				0.5f, 0.0f
+		};
+		
 		/** The initial position definition */
 		final float pyramidPositionData[] = { 
 			 	0.0f,  1.0f,  0.0f,		//Top Of Triangle (Front)
@@ -374,6 +450,10 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         .order(ByteOrder.nativeOrder()).asFloatBuffer();							
 		mCubeNormals.put(cubeNormalData).position(0);
 		
+		mCubeTextureCoordinates = ByteBuffer.allocateDirect(cubeTextureCoordinateData.length * mBytesPerFloat)
+		.order(ByteOrder.nativeOrder()).asFloatBuffer();
+		mCubeTextureCoordinates.put(cubeTextureCoordinateData).position(0);
+		
 		mPyramidPositions = ByteBuffer.allocateDirect(pyramidPositionData.length * mBytesPerFloat)
         .order(ByteOrder.nativeOrder()).asFloatBuffer();							
 		mPyramidPositions.put(pyramidPositionData).position(0);		
@@ -396,54 +476,82 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		// TODO: Explain why we normalize the vectors, explain some of the vector math behind it all. Explain what is eye space.
 		final String vertexShader =
 			"uniform mat4 u_MVPMatrix;      \n"		// A constant representing the combined model/view/projection matrix.
-		  + "uniform mat4 u_MVMatrix;       \n"		// A constant representing the combined model/view matrix.	
-		  + "uniform vec3 u_LightPos;       \n"	    // The position of the light in eye space.
+		  + "uniform mat4 u_MVMatrix;       \n"		// A constant representing the combined model/view matrix.
 			
 		  + "attribute vec4 a_Position;     \n"		// Per-vertex position information we will pass in.
 		  + "attribute vec4 a_Color;        \n"		// Per-vertex color information we will pass in.
 		  + "attribute vec3 a_Normal;       \n"		// Per-vertex normal information we will pass in.
+		  + "attribute vec2 a_TexCoordinate; \n"	// Per-vertex texture coordinate information we will pass in.
 		  
-		  + "varying vec4 v_Color;          \n"		// This will be passed into the fragment shader.
+		  + "varying vec3 v_Position; 		\n"     // This will be passed into the fragment shader.
+		  + "varying vec4 v_Color;         	\n"		// This will be passed into the fragment shader.
+		  + "varying vec3 v_Normal;         \n"		// This will be passed into the fragment shader.
+		  + "varying vec2 v_TexCoordinate;  \n"     // This will be passed into the fragment shader.
 		  
 		  + "void main()                    \n" 	// The entry point for our vertex shader.
 		  + "{                              \n"		
-/*		// Transform the vertex into eye space.
-		  + "   vec3 modelViewVertex = vec3(u_MVMatrix * a_Position);              \n"
-		// Transform the normal's orientation into eye space.
-		  + "   vec3 modelViewNormal = vec3(u_MVMatrix * vec4(a_Normal, 0.0));     \n"
-		// Will be used for attenuation.
-		  + "   float distance = length(u_LightPos - modelViewVertex);             \n"
-		// Get a lighting direction vector from the light to the vertex.
-		  + "   vec3 lightVector = normalize(u_LightPos - modelViewVertex);        \n"
-		// Calculate the dot product of the light vector and vertex normal. If the normal and light vector are
-		// pointing in the same direction then it will get max illumination.
-		  + "   float diffuse = max(dot(modelViewNormal, lightVector), 1.5);       \n" 	  		  													  
-		// Attenuate the light based on distance.
-		  + "   diffuse = diffuse * (1.0 / (1.0 + (0.25 * distance * distance)));  \n"
-		// Multiply the color by the illumination level. It will be interpolated across the triangle.
-		  + "   v_Color = a_Color * diffuse;                                       \n"
-*/		  + "   v_Color = a_Color;                                                 \n"
-		// gl_Position is a special variable used to store the final position.
-		// Multiply the vertex by the matrix to get the final point in normalized screen coordinates.		
-		  + "   gl_Position = u_MVPMatrix * a_Position;                            \n"     
-		  + "}                                                                     \n"; 
+		  // Transform the vertex into eye space.
+		  + "	v_Position = vec3(u_MVMatrix * a_Position);			\n"
+		  // Pass through the color.
+		  + "   v_Color = a_Color;                           	    \n"
+		  // Pass through the texture coordinate.
+		  + "	v_TexCoordinate = a_TexCoordinate;					\n"
+		  // Transform the normal's orientation into eye space.
+		  + "	v_Normal = vec3(u_MVMatrix * vec4(a_Normal, 0.0));	\n"
+		  // gl_Position is a special variable used to store the final position.
+		  // Multiply the vertex by the matrix to get the final point in normalized screen coordinates.		
+		  + "   gl_Position = u_MVPMatrix * a_Position;             \n"     
+		  + "}                                                      \n"; 
 		
 		return vertexShader;
 	}
 	
-	protected String getFragmentShader()
+	protected String getFragmentShader(String type)
 	{
 		final String fragmentShader =
 			"precision mediump float;       \n"		// Set the default precision to medium. We don't need as high of a 
-													// precision in the fragment shader.				
+													// precision in the fragment shader.
+		  + "uniform sampler2D u_Texture;	\n"     // The input texture.
+		  + "varying vec3 v_Position; 		\n"     // Interpolated position for this fragment.
 		  + "varying vec4 v_Color;          \n"		// This is the color from the vertex shader interpolated across the 
 		  											// triangle per fragment.			  
+		  + "varying vec3 v_Normal;      	\n"     // Interpolated normal for this fragment.
+		  + "varying vec2 v_TexCoordinate;	\n" 	// Interpolated texture coordinate per fragment.
 		  + "void main()                    \n"		// The entry point for our fragment shader.
 		  + "{                              \n"
-		  + "   gl_FragColor = v_Color;     \n"		// Pass the color directly through the pipeline.		  
+		  // Multiply the color by the texture value to get final output color.
+		  + "gl_FragColor = (v_Color * texture2D(u_Texture, v_TexCoordinate));	  \n"
 		  + "}                              \n";
 		
-		return fragmentShader;
+		final String cubeFragmentShader =
+			"precision mediump float;       \n"		// Set the default precision to medium. We don't need as high of a 
+													// precision in the fragment shader.
+		  + "uniform sampler2D u_Texture;	\n"     // The input texture.
+		  + "varying vec2 v_TexCoordinate;	\n" 	// Interpolated texture coordinate per fragment.
+		  + "void main()                    \n"		// The entry point for our fragment shader.
+		  + "{                              \n"
+		  // No color to affect texture value.
+		  + "gl_FragColor = texture2D(u_Texture, v_TexCoordinate);	  \n"
+		  + "}                              \n";
+		
+		final String pyramidFragmentShader =
+			"precision mediump float;       \n"		// Set the default precision to medium. We don't need as high of a 
+													// precision in the fragment shader.
+		  + "varying vec4 v_Color;          \n"		// This is the color from the vertex shader interpolated across the 
+		  											// triangle per fragment.	
+		  + "void main()                    \n"		// The entry point for our fragment shader.
+		  + "{                              \n"
+		  // Only show final output color.
+		  + "gl_FragColor = v_Color;	  \n"
+		  + "}                              \n";
+		
+		if (type == "cube") {
+			return cubeFragmentShader;
+		} else if (type == "pyramid") {
+			return pyramidFragmentShader;
+		} else {
+			return fragmentShader;
+		}
 	}
 	
 	@Override
@@ -479,13 +587,23 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);		
 
 		final String vertexShader = getVertexShader();   		
- 		final String fragmentShader = getFragmentShader();			
+ 		final String fragmentShader = getFragmentShader("");
+ 		final String cubeFragmentShader = getFragmentShader("cube");
+ 		final String pyramidFragmentShader = getFragmentShader("pyramid");
 		
-		final int vertexShaderHandle = compileShader(GLES20.GL_VERTEX_SHADER, vertexShader);		
-		final int fragmentShaderHandle = compileShader(GLES20.GL_FRAGMENT_SHADER, fragmentShader);		
+ 		final int vertexShaderHandle = ShaderHelper.compileShader(GLES20.GL_VERTEX_SHADER, vertexShader);		
+		final int fragmentShaderHandle = ShaderHelper.compileShader(GLES20.GL_FRAGMENT_SHADER, fragmentShader);
+		final int cubeFragmentShaderHandle = ShaderHelper.compileShader(GLES20.GL_FRAGMENT_SHADER,
+																		cubeFragmentShader);
+		final int pyramidFragmentShaderHandle = ShaderHelper.compileShader(GLES20.GL_FRAGMENT_SHADER,
+																		pyramidFragmentShader);
 		
-		mPerVertexProgramHandle = createAndLinkProgram(vertexShaderHandle, fragmentShaderHandle, 
-				new String[] {"a_Position",  "a_Color", "a_Normal"});								                                							       
+		mPerVertexProgramHandle = ShaderHelper.createAndLinkProgram(vertexShaderHandle, fragmentShaderHandle, 
+				new String[] {"a_Position",  "a_Color", "a_Normal", "a_TexCoordinate"});
+		mCubeProgramHandle = ShaderHelper.createAndLinkProgram(vertexShaderHandle, cubeFragmentShaderHandle, 
+				new String[] {"a_Position",  "a_Color", "a_Normal", "a_TexCoordinate"});
+		mPyramidProgramHandle = ShaderHelper.createAndLinkProgram(vertexShaderHandle, pyramidFragmentShaderHandle, 
+				new String[] {"a_Position",  "a_Color", "a_Normal", "a_TexCoordinate"});
         
         // Define a simple shader program for our point.
         final String pointVertexShader =
@@ -510,6 +628,9 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         final int pointFragmentShaderHandle = compileShader(GLES20.GL_FRAGMENT_SHADER, pointFragmentShader);
         mPointProgramHandle = createAndLinkProgram(pointVertexShaderHandle, pointFragmentShaderHandle, 
         		new String[] {"a_Position"});                 
+        
+        // Load the texture
+        mTextureDataHandle = TextureHelper.loadTexture(mActivityContext, R.drawable.waterfall_hires);
 	}	
 		
 	@Override
@@ -519,7 +640,6 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		GLES20.glViewport(0, 0, width, height);
 		windowWidth = width;
 		windowHeight = height;
-		Log.d(TAG, "width: " + width + "height: " + height);
 
 		// Create a new perspective projection matrix. The height will stay the same
 		// while the width will vary as per aspect ratio.
@@ -540,30 +660,9 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);			        
         
 		long time = SystemClock.uptimeMillis() % 10000L;
-//		Log.d(TAG, "time: " + time);
 		
 		// Do a complete rotation every 10 seconds.     
-        float angleInDegrees = (360.0f / 10000.0f) * ((int) time);
-		
-		// For new octahedron random location
-/*		Random rand = new Random();
-		if (found) {
-			pyrX = rand.nextFloat()*8 - 4.0f;
-			pyrY = rand.nextFloat()*8 - 4.0f;
-			pyrZ = rand.nextFloat()*(-8) - 2.0f;
-		}
-*/		
-        
-        // Set our per-vertex lighting program.
-        GLES20.glUseProgram(mPerVertexProgramHandle);
-        
-        // Set program handles for cube drawing.
-        mMVPMatrixHandle = GLES20.glGetUniformLocation(mPerVertexProgramHandle, "u_MVPMatrix");
-        mMVMatrixHandle = GLES20.glGetUniformLocation(mPerVertexProgramHandle, "u_MVMatrix"); 
-        mLightPosHandle = GLES20.glGetUniformLocation(mPerVertexProgramHandle, "u_LightPos");
-        mPositionHandle = GLES20.glGetAttribLocation(mPerVertexProgramHandle, "a_Position");
-        mColorHandle = GLES20.glGetAttribLocation(mPerVertexProgramHandle, "a_Color");
-        mNormalHandle = GLES20.glGetAttribLocation(mPerVertexProgramHandle, "a_Normal"); 
+        float angleInDegrees = (360.0f / 10000.0f) * ((int) time); 
         
         // Calculate position of the light. Rotate and then push into the distance.
         Matrix.setIdentityM(mLightModelMatrix, 0);
@@ -574,25 +673,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         Matrix.multiplyMV(mLightPosInWorldSpace, 0, mLightModelMatrix, 0, mLightPosInModelSpace, 0);
         Matrix.multiplyMV(mLightPosInEyeSpace, 0, mViewMatrix, 0, mLightPosInWorldSpace, 0);                        
         
-     // Draw some cubes.        
-        Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.translateM(mModelMatrix, 0, 0.0f, 0.0f, -6.0f);
-        Matrix.scaleM(mModelMatrix, 0, -4.0f, -4.0f, -4.0f);
-        drawCube(GLES20.GL_CCW);
-        
-        Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.translateM(mModelMatrix, 0, 3.0f, -3.0f, -8.0f);
-        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
-        Matrix.scaleM(mModelMatrix, 0, 0.4f, 0.4f, 0.4f);
-        drawCube(GLES20.GL_CCW);
-        
-        Matrix.setIdentityM(mModelMatrix, 0);
-        Matrix.translateM(mModelMatrix, 0, 2.0f, -2.0f, -4.0f);
-        Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
-        Matrix.scaleM(mModelMatrix, 0, 0.1f, 0.1f, 0.1f);
-        drawCube(GLES20.GL_CCW);
-        
-     // Draw some pyramids.        
+        // Draw some pyramids.        
         Matrix.setIdentityM(mModelMatrix, 0);
         Matrix.translateM(mModelMatrix, 0, pyrX, pyrY+0.4f, pyrZ);
         Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, -1.0f, 0.0f);
@@ -606,6 +687,12 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         Matrix.scaleM(mModelMatrix, 0, 0.2f, 0.2f, 0.2f);
         Matrix.translateM(mModelMatrix, 0, 0.0f, -2.0f, 0.0f);
         drawPyramid(GLES20.GL_CW, objectFound);
+        
+        // Draw cube for room.        
+        Matrix.setIdentityM(mModelMatrix, 0);
+        Matrix.translateM(mModelMatrix, 0, 0.0f, 0.0f, -6.0f);
+        Matrix.scaleM(mModelMatrix, 0, -4.0f, -4.0f, -4.0f);
+        drawCube(GLES20.GL_CCW);
         
         // Draw a point to indicate the light.
         GLES20.glUseProgram(mPointProgramHandle);        
@@ -668,7 +755,6 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		float [] outputCoords = new float[2];
 		outputCoords[0] = ((ndcSpacePos[0] + 1.0f) / 2.0f) * view[0];
 		outputCoords[1] = ((ndcSpacePos[1] + 1.0f) / 2.0f) * view[1];
-//		Log.d(TAG, "Output coordinates: " + outputCoords[0] + " " + outputCoords[1]);
 		
 		// Check if octahedron is displayed in center of viewscreen
  		if (outputCoords[0] > view[0]/2 - 50 && outputCoords[0] < view[0]/2 + 50) {
@@ -693,6 +779,28 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		// Set face rotation
 		GLES20.glFrontFace(mode);
 		
+		// Set our per-vertex lighting program.
+        GLES20.glUseProgram(mCubeProgramHandle);
+        
+        // Set program handles for cube drawing.
+        mMVPMatrixHandle = GLES20.glGetUniformLocation(mCubeProgramHandle, "u_MVPMatrix");
+        mMVMatrixHandle = GLES20.glGetUniformLocation(mCubeProgramHandle, "u_MVMatrix"); 
+        mLightPosHandle = GLES20.glGetUniformLocation(mCubeProgramHandle, "u_LightPos");
+        mTextureUniformHandle = GLES20.glGetUniformLocation(mCubeProgramHandle, "u_Texture");
+        mPositionHandle = GLES20.glGetAttribLocation(mCubeProgramHandle, "a_Position");
+        mColorHandle = GLES20.glGetAttribLocation(mCubeProgramHandle, "a_Color");
+        mNormalHandle = GLES20.glGetAttribLocation(mCubeProgramHandle, "a_Normal"); 
+        mTextureCoordinateHandle = GLES20.glGetAttribLocation(mCubeProgramHandle, "a_TexCoordinate");
+        
+        // Set the active texture unit to texture unit 0.
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+        
+        // Bind the texture to this unit.
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureDataHandle);
+        
+        // Tell the texture uniform sampler to use this texture in the shader by binding to texture unit 0.
+        GLES20.glUniform1i(mTextureUniformHandle, 0);
+		
 		// Pass in the position information
 		mCubePositions.position(0);		
         GLES20.glVertexAttribPointer(mPositionHandle, mPositionDataSize, GLES20.GL_FLOAT, false,
@@ -713,6 +821,13 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         		0, mCubeNormals);
         
         GLES20.glEnableVertexAttribArray(mNormalHandle);
+        
+        // Pass in the texture coordinate information
+        mCubeTextureCoordinates.position(0);
+        GLES20.glVertexAttribPointer(mTextureCoordinateHandle, mTextureCoordinateDataSize, GLES20.GL_FLOAT, false, 
+        		0, mCubeTextureCoordinates);
+        
+        GLES20.glEnableVertexAttribArray(mTextureCoordinateHandle);
         
 		// This multiplies the view matrix by the model matrix, and stores the result in the MVP matrix
         // (which currently contains model * view).
@@ -740,6 +855,16 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		// Set face rotation
 		GLES20.glFrontFace(mode);
 		
+		// Set our per-vertex lighting program.
+        GLES20.glUseProgram(mPyramidProgramHandle);
+        
+        // Set program handles for cube drawing.
+        mMVPMatrixHandle = GLES20.glGetUniformLocation(mPyramidProgramHandle, "u_MVPMatrix");
+        mMVMatrixHandle = GLES20.glGetUniformLocation(mPyramidProgramHandle, "u_MVMatrix"); 
+        mLightPosHandle = GLES20.glGetUniformLocation(mPyramidProgramHandle, "u_LightPos");
+        mTextureUniformHandle = GLES20.glGetUniformLocation(mPyramidProgramHandle, "u_Texture");
+        mColorHandle = GLES20.glGetAttribLocation(mPyramidProgramHandle, "a_Color");
+        		
 		// Pass in the position information
 		mPyramidPositions.position(0);		
         GLES20.glVertexAttribPointer(mPositionHandle, mPositionDataSize, GLES20.GL_FLOAT, false,
