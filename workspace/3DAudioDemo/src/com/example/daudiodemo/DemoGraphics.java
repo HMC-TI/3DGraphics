@@ -33,6 +33,9 @@ public class DemoGraphics extends Activity {
 			}
 		};
 		setContentView(mGLSurfaceView);
+		
+		PlayAudio sound = new PlayAudio();
+		sound.execute();
 	}
 
 	@Override
@@ -96,7 +99,7 @@ class MyGLSurfaceView extends GLSurfaceView {
 		setEGLContextClientVersion(2);
 
 		// Set the Renderer for drawing on the GLSurfaceView
-		mRenderer = new DemoRenderer();
+		mRenderer = new DemoRenderer(context);
 		setRenderer(mRenderer);
 	}
 
@@ -176,11 +179,6 @@ class MyGLSurfaceView extends GLSurfaceView {
 		 * on device mode
 		 */
 		case KeyEvent.KEYCODE_DPAD_CENTER:
-		case KeyEvent.KEYCODE_BUTTON_Z:
-			break;
-
-		/* Left action button */
-		case KeyEvent.KEYCODE_BUTTON_X:
 			if (pressed) {
 				if (mRenderer.hasBeenFound()) {
 					Random rand = new Random();
@@ -189,6 +187,20 @@ class MyGLSurfaceView extends GLSurfaceView {
 					mRenderer.pyrZ = rand.nextFloat() * (-8) - 2.0f;
 				}
 			}
+			break;
+		case KeyEvent.KEYCODE_BUTTON_Z:
+			/*if (pressed) {
+				if (mRenderer.hasBeenFound()) {
+					Random rand = new Random();
+					mRenderer.pyrX = rand.nextFloat() * 8 - 4.0f;
+					mRenderer.pyrY = rand.nextFloat() * 8 - 4.0f;
+					mRenderer.pyrZ = rand.nextFloat() * (-8) - 2.0f;
+				}
+			}*/
+			break;
+
+		/* Left action button */
+		case KeyEvent.KEYCODE_BUTTON_X:
 			break;
 
 		default:

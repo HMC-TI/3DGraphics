@@ -1,10 +1,13 @@
 package com.example.daudiodemo;
 
+import java.util.Random;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,11 +32,9 @@ public class InstructScreen extends Activity {
 						DemoGraphics.class);
 
 				startActivity(graphicsIntent);
-
 			}
-		});
-
-	}
+			});
+		}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
