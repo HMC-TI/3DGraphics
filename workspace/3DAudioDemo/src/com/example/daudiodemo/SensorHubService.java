@@ -21,16 +21,14 @@ public class SensorHubService extends Service {
 	// public static BluetoothDevice razorDevice;
 	public RazorAHRS razor;
 	// public RadioGroup deviceListRadioGroup;
+	
+	// These are the values we want to use for the 3D audio. Note that they are calculated in DemoRenderer
+	public static float az =0;
+	public static float elev = 0;
 
 	public static float roll = 0;
 	public static float pitch = 0;
 	public static float yaw = 0;
-	public static float caliRoll = 0;
-	public static float caliPitch = 0;
-	public static float caliYaw = 0;
-	public static float initRoll;
-	public static float initPitch;
-	public static float initYaw;
 
 	public static TextView initial;
 	public static boolean initConnected = false;
@@ -77,25 +75,10 @@ public class SensorHubService extends Service {
 			 * what connects with the Bluetooth
 			 **************************************************************/
 			public void onAnglesUpdate(float yaw, float pitch, float roll) {
-				// Calibration.rollTextViewCal.setText(String.format("%.1f",
-				// roll));
 				SensorHubService.roll = (float) roll;
 				SensorHubService.pitch = (float) pitch;
 				SensorHubService.yaw = (float) yaw;
 
-				// DemoGraphics.mGLSurfaceView.mRenderer.caliRoll = roll;
-				// DemoGraphics.mGLSurfaceView.mRenderer.caliPitch = pitch;
-				// DemoGraphics.mGLSurfaceView.mRenderer.caliYaw = yaw;
-
-				// ----> Still need to deal with wrap around possibly
-				SensorHubService.caliRoll = (float) SensorHubService.roll;// -
-																			// SensorHubService.initRoll);
-				SensorHubService.caliPitch = (float) SensorHubService.pitch;// -
-																			// SensorHubService.initPitch);
-				SensorHubService.caliYaw = (float) SensorHubService.yaw;// -
-																		// SensorHubService.initYaw;
-
-				// System.out.println(" service caliRoll " + caliRoll);
 			}
 
 			public void onIOExceptionAndDisconnect(IOException e) {

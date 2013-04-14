@@ -6,7 +6,7 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="8"
+        android:minSdkVersion="10"
         android:targetSdkVersion="15" />
 
     <!-- Permissions for Bluetooth communication -->
@@ -30,8 +30,14 @@
         <service android:name="com.example.daudiodemo.SensorHubService" >
         </service>
 
-        <activity
+        <!-- <activity
             android:name="com.example.daudiodemo.IntroScreen"
+            android:label="@string/app_name" >
+
+        </activity> -->
+        
+        <activity
+            android:name="com.example.daudiodemo.RazorExample"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -39,28 +45,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.example.daudiodemo.RazorExample"
-            android:label="@string/app_name" >
-
-            <!--
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".RazorExample" >
-            </meta-data>
-            -->
-        </activity>
+        
         <activity
             android:name="com.example.daudiodemo.InstructScreen"
             android:label="@string/app_name"
             android:parentActivityName="com.example.daudiodemo.RazorExample" >
-
-            <!--
-                 <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.dauiodemo.Instruct" />
-            -->
         </activity>
+        
         <activity
             android:name="com.example.daudiodemo.DemoGraphics"
             android:screenOrientation="landscape"
