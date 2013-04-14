@@ -133,7 +133,58 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 
 	// This is a handle to our texture data.
 	private int mTextureDataHandle;
+	
+	
+	// These are the things from OnDrawFrame
+	private long time;
+	private float angleInDegrees;
 
+	// Position the eye in front of the origin.
+	final float eyeX = 0.0f;
+	final float eyeY = 0.0f;
+	final float eyeZ = -6.0f;
+
+	// We are looking toward the distance
+	private float lookX = 0.0f;
+	private float lookY = 0.0f;
+	private float lookZ = 12.0f;
+
+	// Set our up vector. This is where our head would be pointing were we
+	// holding the camera.
+	final float upX = 0.0f;
+	final float upY = 1.0f;
+	final float upZ = 0.0f;
+	
+	// These are the relative az and elev that will allow us to calculate the
+	// needed az and elev for the audio
+	// Spherical coordinates describing where we are looking
+	private float rLook;
+	private float elevLook;
+	private float azLook;
+
+	// These are the relative az and elev that will allow us to calculate the
+	// needed az and elev for the audio
+	// Spherical coordinates describing the location of the object emitting
+	// noise
+	private float rPyr;
+	private float elevPyr;
+	private float azPyr;
+	
+	// float rollRadians = (float) SensorHubService.roll / 180* (float)
+	// Math.PI;
+	private float pitchRadians;
+	private float yawRadians;
+	
+	// Convert object 3D coordinates to 2D window coordinates
+	private int[] view = new int[2];
+	private float[] spacePos = new float[4];
+	private float[] clipSpacePosIntermediate = new float[4];
+	private float[] clipSpacePos = new float[4];
+	
+	// Normalize using w coordinate
+	private float[] ndcSpacePos = new float[3];
+	// Convert to 2D
+	float[] outputCoords = new float[2];
 
 	// Initialize the model data. 
 	public DemoRenderer(final Context activityContext)
@@ -141,7 +192,6 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		mActivityContext = activityContext;
 
 		// Define points for a cube.		
-
 		// X, Y, Z
 		final float[] cubePositionData =
 		{
@@ -563,27 +613,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		GLES20.glEnable(GLES20.GL_CULL_FACE);
 
 		// Enable depth testing
-		GLES20.glEnable(GLES20.GL_DEPTH_TEST);
-
-		// Position the eye in front of the origin.
-		final float eyeX = 0.0f;
-		final float eyeY = 0.0f;
-		final float eyeZ = -6.0f;
-
-		// We are looking toward the distance
-		final float lookX = 0.0f;
-		final float lookY = 0.0f;
-		final float lookZ = 12.0f;
-
-		// Set our up vector. This is where our head would be pointing were we holding the camera.
-		final float upX = 0.0f;
-		final float upY = 1.0f;
-		final float upZ = 0.0f;
-
-		// Set the view matrix. This matrix can be said to represent the camera position.
-		// NOTE: In OpenGL 1, a ModelView matrix is used, which is a combination of a model and
-		// view matrix. In OpenGL 2, we can keep track of these matrices separately if we choose.
-		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);		
+		GLES20.glEnable(GLES20.GL_DEPTH_TEST);		
 
 		final String vertexShader = getVertexShader();   		
  		final String fragmentShader = getFragmentShader("");
@@ -658,10 +688,10 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 	{
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);			        
         
-		long time = SystemClock.uptimeMillis() % 10000L;
+		time = SystemClock.uptimeMillis() % 10000L;
 
 		// Do a complete rotation every 10 seconds.     
-        float angleInDegrees = (360.0f / 10000.0f) * ((int) time); 
+        angleInDegrees = (360.0f / 10000.0f) * ((int) time); 
         
         // Calculate position of the light. Rotate and then push into the distance.
         Matrix.setIdentityM(mLightModelMatrix, 0);
@@ -696,39 +726,14 @@ public class DemoRenderer implements GLSurfaceView.Renderer
         // Draw a point to indicate the light.
         GLES20.glUseProgram(mPointProgramHandle);        
        // drawLight();
-        
-        // Angles for view rotation
-        if (leftRotate) {
-        	theta -= 2*3.14159265359f / 250.0f;
-        }
-        if (rightRotate) {
-        	theta += 2*3.14159265359f / 250.0f;
-        }
-        if (upRotate) {
-        	// will not rotate above a top view; prevents view from flipping when viewing behind
-        	if (phi > 2*3.14159265359f / 250.0f) {
-        		phi -= 2*3.14159265359f / 250.0f;
-        	}
-        }
-        if (downRotate) {
-        	// will not rotate below bottom view for same reason
-        	if (phi < 2*3.14159265359f*124/250.0f) {
-        		phi += 2*3.14159265359f / 250.0f;
-        	}
-        }
-        
-		// Position the eye in front of the origin.
-		final float eyeX = 0.0f;
-		final float eyeY = 0.0f;
-		final float eyeZ = -6.0f;
 
 		// We are looking toward the distance
 
 		// float rollRadians = (float) SensorHubService.roll / 180* (float)
 		// Math.PI;
-		float pitchRadians = (float) SensorHubService.pitch / 180
+		pitchRadians = (float) SensorHubService.pitch / 180
 				* (float) Math.PI;
-		float yawRadians = (float) SensorHubService.yaw / 180
+		yawRadians = (float) SensorHubService.yaw / 180
 				* (float) Math.PI;
 
 		/*
@@ -738,55 +743,56 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		 */
 
 		
-		final float lookX = 5.0f * FloatMath.cos(-pitchRadians)
-				* FloatMath.sin(-yawRadians);
-		final float lookY = 5.0f * FloatMath.sin(-pitchRadians);
-		final float lookZ = 5.0f * FloatMath.cos(-pitchRadians)
-				* FloatMath.cos(-yawRadians) - 6.0f;
+//		lookX = 5.0f * FloatMath.cos(-pitchRadians)
+//				* FloatMath.sin(-yawRadians);
+//		lookY = 5.0f * FloatMath.sin(-pitchRadians);
+//		lookZ = 5.0f * FloatMath.cos(-pitchRadians)
+//				* FloatMath.cos(-yawRadians) - 6.0f;
+		
+		lookX = -5.0f * FloatMath.cos(pitchRadians)
+				* FloatMath.sin(yawRadians);
+		lookY = -5.0f * FloatMath.sin(pitchRadians);
+		lookZ = 5.0f * FloatMath.cos(pitchRadians)
+				* FloatMath.cos(yawRadians) - 6.0f;
+
 		
 		// These are the relative az and elev that will allow us to calculate the needed az and elev for the audio
 		// Spherical coordinates describing where we are looking
-		final float rLook = FloatMath.sqrt(lookX*lookX+lookY*lookY+lookZ*lookZ);
-		final float elevLook = (float) Math.acos((double)lookZ/rLook);
-		final float azLook = (float) Math.atan((double)lookY/lookX);
+		rLook = FloatMath.sqrt(lookX*lookX+lookY*lookY+lookZ*lookZ);
+		elevLook = (float) Math.acos((double)lookZ/rLook);
+		azLook = (float) Math.atan((double)lookY/lookX);
 		
 		// These are the relative az and elev that will allow us to calculate the needed az and elev for the audio
 		// Spherical coordinates describing the location of the object emitting noise
-		final float rPyr = FloatMath.sqrt(pyrX*pyrX+pyrY*pyrY+pyrZ*pyrZ);
-		final float elevPyr = (float) Math.acos((double)pyrZ/rPyr);
-		final float azPyr = (float) Math.atan((double)pyrY/pyrX);
+		rPyr = FloatMath.sqrt(pyrX*pyrX+pyrY*pyrY+pyrZ*pyrZ);
+		elevPyr = (float) Math.acos((double)pyrZ/rPyr);
+		azPyr = (float) Math.atan((double)pyrY/pyrX);
 		
 		// These values are the az and elev we need to use in our audio code:
 		// Our thinking was that if it's to the left we want the angle to be negative
 		SensorHubService.az = azPyr - azLook;
 		SensorHubService.elev = elevPyr - elevLook;
-
-		// Set our up vector. This is where our head would be pointing were we
-		// holding the camera.
-		final float upX = 0.0f;
-		final float upY = 1.0f;
-		final float upZ = 0.0f;
 		
 		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY, lookZ, upX, upY, upZ);
 
 		// Convert object 3D coordinates to 2D window coordinates
-		int [] view = new int[]{windowWidth, windowHeight};
-		float [] spacePos = new float []{pyrX, pyrY, pyrZ, 1.0f};
-		float [] clipSpacePosIntermediate = new float[4];
-		float [] clipSpacePos = new float[4];
+		view[0] = windowWidth;
+		view[1] = windowHeight;
+		spacePos[0] = pyrX;
+		spacePos[1] = pyrY;
+		spacePos[2] = pyrZ;
+		spacePos[3] = 1.0f;
 
 		// Convert object coordinates to clip space coordinates
 		Matrix.multiplyMV(clipSpacePosIntermediate, 0, mViewMatrix, 0, spacePos, 0);
 		Matrix.multiplyMV(clipSpacePos, 0, mProjectionMatrix, 0, clipSpacePosIntermediate, 0);
 
 		// Normalize using w coordinate
-		float [] ndcSpacePos = new float[3];
 		ndcSpacePos[0] = clipSpacePos[0]/clipSpacePos[3];
 		ndcSpacePos[1] = clipSpacePos[1]/clipSpacePos[3];
 		ndcSpacePos[2] = clipSpacePos[2]/clipSpacePos[3];
 
 		// Convert to 2D
-		float [] outputCoords = new float[2];
 		outputCoords[0] = ((ndcSpacePos[0] + 1.0f) / 2.0f) * view[0];
 		outputCoords[1] = ((ndcSpacePos[1] + 1.0f) / 2.0f) * view[1];
 
@@ -814,6 +820,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 		GLES20.glFrontFace(mode);
 
 		// Set our per-vertex lighting program.
+		// Change this to switch between colored walls and waterfall texture, mPyramidProgramHandle and mCubeProgramHandle.
         GLES20.glUseProgram(mCubeProgramHandle);
         
         // Set program handles for cube drawing.

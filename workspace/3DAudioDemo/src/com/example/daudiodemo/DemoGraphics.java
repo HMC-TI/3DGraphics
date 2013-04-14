@@ -155,6 +155,14 @@ class MyGLSurfaceView extends GLSurfaceView {
 
 		/* Left trigger button */
 		case KeyEvent.KEYCODE_BUTTON_L1:
+			if (pressed) {
+				if (mRenderer.hasBeenFound()) {
+					Random rand = new Random();
+					mRenderer.pyrX = rand.nextFloat() * 8 - 4.0f;
+					mRenderer.pyrY = rand.nextFloat() * 8 - 4.0f;
+					mRenderer.pyrZ = rand.nextFloat() * (-8) - 2.0f;
+				}
+			}
 			break;
 
 		/* Right trigger button */
@@ -179,14 +187,6 @@ class MyGLSurfaceView extends GLSurfaceView {
 		 * on device mode
 		 */
 		case KeyEvent.KEYCODE_DPAD_CENTER:
-			if (pressed) {
-				if (mRenderer.hasBeenFound()) {
-					Random rand = new Random();
-					mRenderer.pyrX = rand.nextFloat() * 8 - 4.0f;
-					mRenderer.pyrY = rand.nextFloat() * 8 - 4.0f;
-					mRenderer.pyrZ = rand.nextFloat() * (-8) - 2.0f;
-				}
-			}
 			break;
 		case KeyEvent.KEYCODE_BUTTON_Z:
 			/*if (pressed) {
