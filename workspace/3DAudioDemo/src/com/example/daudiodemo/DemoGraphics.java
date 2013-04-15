@@ -13,7 +13,11 @@ import android.view.KeyEvent;
 
 public class DemoGraphics extends Activity {
 	
+	
 	public static boolean startQuit;
+	
+	// When the audio should be played
+	public static boolean playAudio = true;
 	
 	private BroadcastReceiver mReceiver;
 	/** Hold a reference to our GLSurfaceView */
@@ -34,8 +38,8 @@ public class DemoGraphics extends Activity {
 		};
 		setContentView(mGLSurfaceView);
 		
-		PlayAudio sound = new PlayAudio();
-		sound.execute();
+		//PlayAudio sound = new PlayAudio();
+		//sound.execute();
 	}
 
 	@Override

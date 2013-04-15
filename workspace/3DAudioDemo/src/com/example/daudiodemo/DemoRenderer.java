@@ -749,11 +749,12 @@ public class DemoRenderer implements GLSurfaceView.Renderer
 //		lookZ = 5.0f * FloatMath.cos(-pitchRadians)
 //				* FloatMath.cos(-yawRadians) - 6.0f;
 		
-		lookX = -5.0f * FloatMath.cos(pitchRadians)
-				* FloatMath.sin(yawRadians);
-		lookY = -5.0f * FloatMath.sin(pitchRadians);
-		lookZ = 5.0f * FloatMath.cos(pitchRadians)
-				* FloatMath.cos(yawRadians) - 6.0f;
+		// we calibrated in opposite direction so the angles are opposite
+		lookX = -5.0f * FloatMath.cos(-pitchRadians)
+				* FloatMath.sin(-yawRadians);
+		lookY = -5.0f * FloatMath.sin(-pitchRadians);
+		lookZ = 5.0f * FloatMath.cos(-pitchRadians)
+				* FloatMath.cos(-yawRadians) - 6.0f;
 
 		
 		// These are the relative az and elev that will allow us to calculate the needed az and elev for the audio
