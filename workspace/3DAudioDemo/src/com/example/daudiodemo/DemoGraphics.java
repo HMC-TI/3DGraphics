@@ -38,8 +38,8 @@ public class DemoGraphics extends Activity {
 		};
 		setContentView(mGLSurfaceView);
 		
-		//PlayAudio sound = new PlayAudio();
-		//sound.execute();
+		PlayAudio sound = new PlayAudio();
+		sound.execute();
 	}
 
 	@Override

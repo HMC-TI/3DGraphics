@@ -216,7 +216,7 @@ public class GetIRF {
 			hrtfname = String.format("res/raw/h_%de%03da.txt", mag, azim);
 		}
 		else
-			hrtfname = String.format("raw/h%de%03da.txt", elev, azim);
+			hrtfname = String.format("res/raw/h%de%03da.txt", elev, azim);
 		return hrtfname;
 	}
 

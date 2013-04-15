@@ -64,8 +64,8 @@ public class Audio3D {
 		// interwave
 		// Interleave left and right channels for stereo output
 		for (int i = 0; i < newOut.left.length; i++) {
-			finalOut[i] = newOut.left[i];
-			finalOut[i + 1] = newOut.right[i];
+			finalOut[i*2] = 10*newOut.left[i];
+			finalOut[i*2 + 1] = 10*newOut.right[i];
 		}
 
 		return finalOut;
@@ -114,11 +114,10 @@ public class Audio3D {
 		return out;
 	}
 
-	void updateLocation(double newaz, double newelev, double newdist) {
+	void updateLocation(double newaz, double newelev) {
 		// Saves old az and elev- this may not be necessary, as it is done in runAudio3D
 		oldAz = az;
 		oldElev = elev;
-		dist = newdist;
 		az = newaz;
 		elev = newelev;
 	}
