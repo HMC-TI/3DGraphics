@@ -10,7 +10,7 @@
     <string name="intro_message">Start by calibrating your sensor hub. Click below to begin.</string>
     <string name="select_device">Please select your Razor AHRS Bluetooth device:</string>
     <string name="paired_warning">You can only connect to paired devices. If you cannot find your Razor AHRS, go to system options and make sure it is paired.</string>
-    <string name="instruct_message">Look around the room to find the diamond! When you see it highlighted, click to collect it. Good luck!</string>
+    <string name="instruct_message">Look around the room to find the diamond! When you see it highlighted, click to collect. Good luck!</string>
     <string name="button_gametel_description">South button on Gametel controller.</string>
     <string name="intro_button">Calibrate</string>
     <string name="begin_button">Begin Game</string>

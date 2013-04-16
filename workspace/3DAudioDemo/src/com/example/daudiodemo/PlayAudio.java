@@ -10,7 +10,6 @@ public class PlayAudio extends AsyncTask <Void, Void, Void> {
 	@Override
 	protected Void doInBackground(Void... args0) {
 		System.out.println("Started Audio");
-		AndroidAudioDevice device = new AndroidAudioDevice();
 		
 		float[] finalOut;
 		double az = 0;
@@ -23,7 +22,7 @@ public class PlayAudio extends AsyncTask <Void, Void, Void> {
 			// Futz the input sound
 			finalOut = SensorHubService.audio.runAudio3D();
 
-			device.writeSamples(finalOut);
+			DemoGraphics.device.writeSamples(finalOut);
 		}
         
         return null;

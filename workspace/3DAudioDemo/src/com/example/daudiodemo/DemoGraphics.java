@@ -7,18 +7,21 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.view.KeyEvent;
+import android.widget.Toast;
 
 public class DemoGraphics extends Activity {
-	
-	
+
 	public static boolean startQuit;
-	
+
 	// When the audio should be played
 	public static boolean playAudio = true;
-	
+
+	public static AndroidAudioDevice device = new AndroidAudioDevice();
+
 	private BroadcastReceiver mReceiver;
 	/** Hold a reference to our GLSurfaceView */
 	private MyGLSurfaceView mGLSurfaceView;
@@ -37,7 +40,7 @@ public class DemoGraphics extends Activity {
 			}
 		};
 		setContentView(mGLSurfaceView);
-		
+
 		PlayAudio sound = new PlayAudio();
 		sound.execute();
 	}
@@ -46,7 +49,7 @@ public class DemoGraphics extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 		mReceiver = null;
-		
+
 	}
 
 	@Override
@@ -65,6 +68,7 @@ public class DemoGraphics extends Activity {
 		registerReceiver(mReceiver, filter);
 
 		super.onResume();
+		MyGLSurfaceView.score = 0;
 		mGLSurfaceView.onResume();
 	}
 
@@ -95,6 +99,7 @@ public class DemoGraphics extends Activity {
 class MyGLSurfaceView extends GLSurfaceView {
 
 	private final DemoRenderer mRenderer;
+	public static int score = 0;
 
 	public MyGLSurfaceView(Context context) {
 		super(context);
@@ -159,14 +164,6 @@ class MyGLSurfaceView extends GLSurfaceView {
 
 		/* Left trigger button */
 		case KeyEvent.KEYCODE_BUTTON_L1:
-			if (pressed) {
-				if (mRenderer.hasBeenFound()) {
-					Random rand = new Random();
-					mRenderer.pyrX = rand.nextFloat() * 8 - 4.0f;
-					mRenderer.pyrY = rand.nextFloat() * 8 - 4.0f;
-					mRenderer.pyrZ = rand.nextFloat() * (-8) - 2.0f;
-				}
-			}
 			break;
 
 		/* Right trigger button */
@@ -193,18 +190,31 @@ class MyGLSurfaceView extends GLSurfaceView {
 		case KeyEvent.KEYCODE_DPAD_CENTER:
 			break;
 		case KeyEvent.KEYCODE_BUTTON_Z:
-			/*if (pressed) {
+			break;
+
+		/* Left action button */
+		case KeyEvent.KEYCODE_BUTTON_X:
+			if (pressed) {
 				if (mRenderer.hasBeenFound()) {
 					Random rand = new Random();
 					mRenderer.pyrX = rand.nextFloat() * 8 - 4.0f;
 					mRenderer.pyrY = rand.nextFloat() * 8 - 4.0f;
 					mRenderer.pyrZ = rand.nextFloat() * (-8) - 2.0f;
+					score += 1;
+					Toast.makeText(this.getContext(), String.valueOf(score),
+							Toast.LENGTH_SHORT).show();
+					if (score == 2) {
+						Toast.makeText(this.getContext(), "Level 2",
+								Toast.LENGTH_LONG).show();
+						mRenderer.levelTwo = true;
+					}
+					else if (score == 4) {
+						Toast.makeText(this.getContext(), "Level 3",
+								Toast.LENGTH_LONG).show();
+						mRenderer.levelThree = true;
+					}
 				}
-			}*/
-			break;
-
-		/* Left action button */
-		case KeyEvent.KEYCODE_BUTTON_X:
+			}
 			break;
 
 		default:
@@ -212,5 +222,4 @@ class MyGLSurfaceView extends GLSurfaceView {
 		}
 		return true;
 	}
-	
 }

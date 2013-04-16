@@ -12,17 +12,20 @@ public final class R {
     }
     public static final class drawable {
         public static final int button_gametel=0x7f020000;
-        public static final int gametel_buttons_new=0x7f020001;
-        public static final int ic_action_search=0x7f020002;
-        public static final int ic_launcher=0x7f020003;
-        public static final int waterfall_hires=0x7f020004;
+        public static final int field=0x7f020001;
+        public static final int gametel_buttons_new=0x7f020002;
+        public static final int gametel_trigger=0x7f020003;
+        public static final int ic_action_search=0x7f020004;
+        public static final int ic_launcher=0x7f020005;
+        public static final int mountain=0x7f020006;
+        public static final int waterfall_hires=0x7f020007;
     }
     public static final class id {
         public static final int begin_button=0x7f080006;
         public static final int cancel_button=0x7f080005;
         public static final int connect_button=0x7f080004;
         public static final int devices_radiogroup=0x7f080003;
-        public static final int gametel_buttons=0x7f080000;
+        public static final int gametel_trigger=0x7f080000;
         public static final int intro_button=0x7f080002;
         public static final int menu_settings=0x7f080007;
         public static final int play_button=0x7f080001;

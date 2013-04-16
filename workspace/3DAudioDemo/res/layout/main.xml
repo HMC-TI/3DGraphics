@@ -8,23 +8,27 @@
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:textSize="30sp"
         android:text="@string/select_device" />
 
     <ScrollView
         android:layout_width="fill_parent"
-        android:layout_height="80dp"
-        android:padding="15dip" >
+        android:layout_height="200sp"
+        android:padding="30dip" >
 
         <RadioGroup
             android:id="@+id/devices_radiogroup"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content" >
+            android:layout_height="wrap_content" 
+            android:textSize="0sp">
+
         </RadioGroup>
     </ScrollView>
 
     <TextView
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
+        android:textSize="30sp"
         android:text="@string/paired_warning" />
 
     <LinearLayout
@@ -38,6 +42,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:textSize="30sp"
             android:text="@string/connect_button_connect" />
 
         <Button
@@ -45,6 +50,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:textSize="30sp"
             android:text="@string/cancel_button" />
     </LinearLayout>
 
@@ -59,6 +65,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:textSize="30sp"
             android:text="@string/begin_button" />
     </LinearLayout>
 
