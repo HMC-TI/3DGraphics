@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.view.KeyEvent;
@@ -30,9 +29,6 @@ public class DemoGraphics extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		// Make the orientation landscape due to hardware setup
-		// setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-
 		mGLSurfaceView = new MyGLSurfaceView(this);
 		mReceiver = new BroadcastReceiver() {
 			@Override
@@ -40,7 +36,7 @@ public class DemoGraphics extends Activity {
 			}
 		};
 		setContentView(mGLSurfaceView);
-
+		// Begin audio
 		PlayAudio sound = new PlayAudio();
 		sound.execute();
 	}
@@ -68,6 +64,8 @@ public class DemoGraphics extends Activity {
 		registerReceiver(mReceiver, filter);
 
 		super.onResume();
+		// This will restart the score anytime the graphics are paused by a
+		// screen change
 		MyGLSurfaceView.score = 0;
 		mGLSurfaceView.onResume();
 	}
@@ -99,6 +97,8 @@ public class DemoGraphics extends Activity {
 class MyGLSurfaceView extends GLSurfaceView {
 
 	private final DemoRenderer mRenderer;
+
+	// This will be used to keep score of the number of diamonds collected
 	public static int score = 0;
 
 	public MyGLSurfaceView(Context context) {
@@ -120,20 +120,22 @@ class MyGLSurfaceView extends GLSurfaceView {
 
 		/* Upper navigation button */
 		case KeyEvent.KEYCODE_DPAD_UP:
-			if (pressed) {
-				mRenderer.upRotate = true;
-			} else {
-				mRenderer.upRotate = false;
-			}
+			/* For debugging: if need to change view without sensor hub */
+			// if (pressed) {
+			// mRenderer.upRotate = true;
+			// } else {
+			// mRenderer.upRotate = false;
+			// }
 			break;
 
 		/* Right navigation button */
 		case KeyEvent.KEYCODE_DPAD_RIGHT:
-			if (pressed) {
-				mRenderer.rightRotate = true;
-			} else {
-				mRenderer.rightRotate = false;
-			}
+			/* For debugging: if need to change view without sensor hub */
+			// if (pressed) {
+			// mRenderer.rightRotate = true;
+			// } else {
+			// mRenderer.rightRotate = false;
+			// }
 			break;
 
 		/* Lower navigation button */
@@ -164,10 +166,34 @@ class MyGLSurfaceView extends GLSurfaceView {
 
 		/* Left trigger button */
 		case KeyEvent.KEYCODE_BUTTON_L1:
+			if (pressed) {
+				/*
+				 * In case we need it during the demo: move the diamond to a new
+				 * location
+				 */
+				Random rand = new Random();
+				mRenderer.pyrX = rand.nextFloat() * 8 - 4.0f;
+				mRenderer.pyrY = rand.nextFloat() * 8 - 4.0f;
+				mRenderer.pyrZ = rand.nextFloat() * (-8) - 2.0f;
+			}
 			break;
 
 		/* Right trigger button */
 		case KeyEvent.KEYCODE_BUTTON_R1:
+			if (pressed) {
+				/* If audio is on, mute it */
+				if (DemoGraphics.playAudio == true) {
+					DemoGraphics.playAudio = false;
+					Toast.makeText(this.getContext(), "Mute",
+							Toast.LENGTH_SHORT).show();
+				}
+				/* If audio is muted, turn it back on */
+				else if (DemoGraphics.playAudio == false) {
+					DemoGraphics.playAudio = true;
+					PlayAudio sound = new PlayAudio();
+					sound.execute();
+				}
+			}
 			break;
 
 		/* Upper action button */
@@ -195,23 +221,44 @@ class MyGLSurfaceView extends GLSurfaceView {
 		/* Left action button */
 		case KeyEvent.KEYCODE_BUTTON_X:
 			if (pressed) {
+
 				if (mRenderer.hasBeenFound()) {
+					/*
+					 * If diamond is in view and the player has clicked the
+					 * trigger, move the diamond to a new location
+					 */
 					Random rand = new Random();
 					mRenderer.pyrX = rand.nextFloat() * 8 - 4.0f;
 					mRenderer.pyrY = rand.nextFloat() * 8 - 4.0f;
 					mRenderer.pyrZ = rand.nextFloat() * (-8) - 2.0f;
+
+					/*
+					 * Add a point for every found diamond and display score to
+					 * player
+					 */
 					score += 1;
 					Toast.makeText(this.getContext(), String.valueOf(score),
 							Toast.LENGTH_SHORT).show();
+					/*
+					 * For changing levels: if the player has reached a certain
+					 * score, change levels (cube texture) by updating the level
+					 * booleans here and inform the player what level they have
+					 * achieved
+					 */
+
+					/* Level 2 */
 					if (score == 2) {
+						mRenderer.levelTwo = true;
 						Toast.makeText(this.getContext(), "Level 2",
 								Toast.LENGTH_LONG).show();
-						mRenderer.levelTwo = true;
+
 					}
+					/* Level 3 */
 					else if (score == 4) {
+						mRenderer.levelThree = true;
 						Toast.makeText(this.getContext(), "Level 3",
 								Toast.LENGTH_LONG).show();
-						mRenderer.levelThree = true;
+
 					}
 				}
 			}

@@ -42,14 +42,19 @@ public class RazorExample extends Activity {
 	public static float roll = 0;
 	public static float pitch = 0;
 	public static float yaw = 0;
-	public static float initRoll;
-	public static float initPitch;
-	public static float initYaw;
+	
+	// Don't need these?
+	//public static float initRoll;
+	//public static float initPitch;
+	//public static float initYaw;
 
-	public static TextView initial;
-	public static boolean initConnected = false;
+	//Don't need these?
+	//public static TextView initial;
+	//public static boolean initConnected = false;
 
 	private RadioGroup deviceListRadioGroup;
+	
+	// Buttons
 	public static Button beginButton;
 	public static Button connectButton;
 	public static Button cancelButton;
@@ -66,10 +71,6 @@ public class RazorExample extends Activity {
 
 		// Set view
 		setContentView(R.layout.main);
-		
-		// Enable up-button for ancestral navigation
-		//getActionBar().setDisplayHomeAsUpEnabled(true);
-
 
 		// Find views
 		beginButton = (Button) findViewById(R.id.begin_button);
@@ -116,15 +117,7 @@ public class RazorExample extends Activity {
 		beginButton.setOnClickListener(new View.OnClickListener() {
 
 			public void onClick(View v) {
-
-				/* We decided not to collect initial values
-				 * SensorHubService.initRoll = roll;
-				SensorHubService.initPitch = pitch;
-				SensorHubService.initYaw = yaw;
-
-				Toast.makeText(RazorExample.this, "Initial Values Collected!",
-						Toast.LENGTH_SHORT).show();*/
-
+				// Move on to next screen
 				Intent instructIntent = new Intent(RazorExample.this,
 						InstructScreen.class);
 
@@ -223,7 +216,7 @@ public class RazorExample extends Activity {
 	protected void onDestroy(){
 		super.onDestroy();
 		Log.d(TAG, "onDestroy");
-		
+		// Stop sensor hub service
 		stopService(new Intent(RazorExample.this,
 				SensorHubService.class));
 	}

@@ -14,7 +14,6 @@ import android.opengl.Matrix;
 import android.os.SystemClock;
 import android.util.FloatMath;
 import android.util.Log;
-import android.widget.Toast;
 
 /**
  * This class implements our custom renderer. Note that the GL10 parameter
@@ -26,8 +25,12 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 	private static final String TAG = "DemoRenderer";
 
 	public final Context mActivityContext;
-
+	
+	// Used to keep score
 	public static int count;
+	
+	// Used to keep track of what level a player is in the game
+	// Different levels have different background textures
 	public boolean levelTwo = false;
 	public boolean levelThree = false;
 
@@ -774,18 +777,28 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		// Do a complete rotation every 10 seconds.
 		angleInDegrees = (360.0f / 10000.0f) * ((int) time);
 
-		// Change the texture to simulate different levels!
+		// ADD LEVELS HERE.
+		// Additional levels are created by changing the
+		// texture of the cube to different images of various
+		// environemnetsChange the texture to simulate different levels!
+
+		/* Level 2 */
 		if (levelTwo == true) {
+			// Load the texture for the new level
 			mTextureDataHandle = TextureHelper.loadTexture(mActivityContext,
 					R.drawable.field);
 			levelTwo = false;
 		}
-
+		/* Level 3 */
 		else if (levelThree == true) {
+			// Load the texture for the new level
 			mTextureDataHandle = TextureHelper.loadTexture(mActivityContext,
 					R.drawable.mountain);
 			levelThree = false;
 		}
+
+		// END LEVELS.
+
 		// Calculate position of the light. Rotate and then push into the
 		// distance.
 		Matrix.setIdentityM(mLightModelMatrix, 0);
@@ -853,8 +866,13 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		// Spherical coordinates describing where we are looking
 		rLook = FloatMath.sqrt(lookX * lookX + lookY * lookY + (lookZ + 6.0f)
 				* (lookZ + 6.0f));
-		elevLook = (float) Math.acos((double) (lookZ + 6.0f) / rLook);
-		azLook = (float) Math.atan((double) lookY / lookX);
+		elevLook = (float) ((float) 180 / Math.PI * Math
+				.acos((double) (lookZ + 6.0f) / rLook));
+		azLook = (float) ((float) 180 / Math.PI * Math.atan((double) lookY
+				/ lookX));
+		if (lookX < 0) {
+			azLook = azLook + (float) Math.signum((double) lookY) * 180;
+		}
 
 		// These are the relative az and elev that will allow us to calculate
 		// the needed az and elev for the audio
@@ -862,19 +880,19 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		// noise
 		rPyr = FloatMath.sqrt(pyrX * pyrX + pyrY * pyrY + (pyrZ + 6.0f)
 				* (pyrZ + 6.0f));
-		elevPyr = (float) Math.acos((double) (pyrZ + 6.0f) / rPyr);
-		azPyr = (float) Math.atan((double) pyrY / pyrX);
+		elevPyr = (float) ((float) 180 / Math.PI * Math
+				.acos((double) (pyrZ + 6.0f) / rPyr));
+		azPyr = (float) ((float) 180 / Math.PI * Math
+				.atan((double) pyrY / pyrX));
+		if (pyrX < 0) {
+			azPyr = azPyr + (float) Math.signum((double) pyrY) * 180;
+		}
 
 		// These values are the az and elev we need to use in our audio code:
 		// Our thinking was that if it's to the left we want the angle to be
 		// negative
-		SensorHubService.az = (float) ((float) 180 / Math.PI * (azPyr - azLook));
-		SensorHubService.elev = (float) ((float) 180 / Math.PI * (elevPyr - elevLook));
-
-		System.out.println("The az is" + SensorHubService.az);
-		System.out.println("The elev is" + SensorHubService.elev);
-		System.out.println("The individual elevations are " + elevPyr + " "
-				+ elevLook);
+		SensorHubService.az = azLook - azPyr;
+		SensorHubService.elev = elevLook - elevPyr;
 
 		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY,
 				lookZ, upX, upY, upZ);
@@ -926,8 +944,8 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		GLES20.glFrontFace(mode);
 
 		// Set our per-vertex lighting program.
-		// Change this to switch between colored walls and waterfall texture,
-		// mPyramidProgramHandle and mCubeProgramHandle.
+		// Change this to switch between colored walls and textured walls,
+		// mPyramidProgramHandle and mCubeProgramHandle respectively.
 		GLES20.glUseProgram(mCubeProgramHandle);
 
 		// Set program handles for cube drawing.

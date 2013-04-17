@@ -98,7 +98,7 @@ public class SensorHubService extends Service {
 		
 		
 		// now init the 3D audio
-		//audio.init();
+		audio.init();
 
 	}
 
