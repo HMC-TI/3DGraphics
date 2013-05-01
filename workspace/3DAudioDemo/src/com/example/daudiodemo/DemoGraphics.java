@@ -21,8 +21,10 @@ public class DemoGraphics extends Activity {
 
 	public static AndroidAudioDevice device = new AndroidAudioDevice();
 
+	// For the Gametel controller, a Bluetooth device
 	private BroadcastReceiver mReceiver;
-	/** Hold a reference to our GLSurfaceView */
+	
+	// Our custom GLSurfaceView, defined below
 	private MyGLSurfaceView mGLSurfaceView;
 
 	@Override
@@ -50,24 +52,25 @@ public class DemoGraphics extends Activity {
 
 	@Override
 	protected void onResume() {
-		// The activity must call the GL surface view's onResume() on activity
-		// onResume().
 		/*
 		 * Register a listener to detect when Gametel devices
 		 * connects/disconnects
 		 */
 		IntentFilter filter = new IntentFilter();
-		/* For devices in RFCOMM mode (which uses the InputMethod) */
+		// For devices in RFCOMM mode (which uses the InputMethod)
 		filter.addAction(Intent.ACTION_INPUT_METHOD_CHANGED);
-		/* For devices in HID mode */
+		// For devices in HID mode
 		filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
 		registerReceiver(mReceiver, filter);
 
-		super.onResume();
-		// This will restart the score anytime the graphics are paused by a
+		// This will restart the score any time the graphics are paused by a
 		// screen change
 		MyGLSurfaceView.score = 0;
+		
+		// The activity must call the GL surface view's onResume() on activity
+		// onResume().
 		mGLSurfaceView.onResume();
+		super.onResume();
 	}
 
 	@Override
@@ -75,10 +78,13 @@ public class DemoGraphics extends Activity {
 		unregisterReceiver(mReceiver);
 		// The activity must call the GL surface view's onPause() on activity
 		// onPause().
-		super.onPause();
 		mGLSurfaceView.onPause();
+		super.onPause();
 	}
 
+	/**
+	 * For handling button presses on the Gametel controller
+	 */
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (!mGLSurfaceView.handleKeyEvent(keyCode, event))
@@ -96,6 +102,7 @@ public class DemoGraphics extends Activity {
 
 class MyGLSurfaceView extends GLSurfaceView {
 
+	// Make our own custom renderer using OpenGL ES
 	private final DemoRenderer mRenderer;
 
 	// This will be used to keep score of the number of diamonds collected
@@ -112,7 +119,10 @@ class MyGLSurfaceView extends GLSurfaceView {
 		setRenderer(mRenderer);
 	}
 
-	/* Help function to parse the Gametel key */
+	/**
+	 *  Help function to parse the Gametel key. Buttons can be set to game
+	 *  functionality at the programmer's discretion.
+	 */
 	public boolean handleKeyEvent(int keyCode, KeyEvent event) {
 		boolean pressed = event.getAction() == KeyEvent.ACTION_DOWN;
 
@@ -120,40 +130,54 @@ class MyGLSurfaceView extends GLSurfaceView {
 
 		/* Upper navigation button */
 		case KeyEvent.KEYCODE_DPAD_UP:
-			/* For debugging: if need to change view without sensor hub */
-			// if (pressed) {
-			// mRenderer.upRotate = true;
-			// } else {
-			// mRenderer.upRotate = false;
-			// }
+			// For debugging: if need to change view without sensor hub, use DPad on
+			// Gametel Controller
+			/*
+			if (pressed) {
+			mRenderer.upRotate = true;
+			} else {
+			mRenderer.upRotate = false;
+			}
+			*/
 			break;
 
 		/* Right navigation button */
 		case KeyEvent.KEYCODE_DPAD_RIGHT:
-			/* For debugging: if need to change view without sensor hub */
-			// if (pressed) {
-			// mRenderer.rightRotate = true;
-			// } else {
-			// mRenderer.rightRotate = false;
-			// }
+			// For debugging: if need to change view without sensor hub, use DPad on
+			// Gametel Controller
+			/*
+			if (pressed) {
+			mRenderer.rightRotate = true;
+			} else {
+			mRenderer.rightRotate = false;
+			}
+			*/
 			break;
 
 		/* Lower navigation button */
 		case KeyEvent.KEYCODE_DPAD_DOWN:
+			// For debugging: if need to change view without sensor hub, use DPad on
+			// Gametel Controller
+			/*
 			if (pressed) {
 				mRenderer.downRotate = true;
 			} else {
 				mRenderer.downRotate = false;
 			}
+			*/
 			break;
 
 		/* Left navigation button */
 		case KeyEvent.KEYCODE_DPAD_LEFT:
+			// For debugging: if need to change view without sensor hub, use DPad on
+			// Gametel Controller
+			/*
 			if (pressed) {
 				mRenderer.leftRotate = true;
 			} else {
 				mRenderer.leftRotate = false;
 			}
+			*/
 			break;
 
 		/* Start button */
@@ -167,10 +191,8 @@ class MyGLSurfaceView extends GLSurfaceView {
 		/* Left trigger button */
 		case KeyEvent.KEYCODE_BUTTON_L1:
 			if (pressed) {
-				/*
-				 * In case we need it during the demo: move the diamond to a new
-				 * location
-				 */
+				// Demo "cheat" button: move the diamond to a new location without
+				// centering diamond requirement
 				Random rand = new Random();
 				mRenderer.pyrX = rand.nextFloat() * 8 - 4.0f;
 				mRenderer.pyrY = rand.nextFloat() * 8 - 4.0f;
@@ -181,13 +203,13 @@ class MyGLSurfaceView extends GLSurfaceView {
 		/* Right trigger button */
 		case KeyEvent.KEYCODE_BUTTON_R1:
 			if (pressed) {
-				/* If audio is on, mute it */
+				// If audio is on, mute it
 				if (DemoGraphics.playAudio == true) {
 					DemoGraphics.playAudio = false;
 					Toast.makeText(this.getContext(), "Mute",
 							Toast.LENGTH_SHORT).show();
 				}
-				/* If audio is muted, turn it back on */
+				// If audio is muted, turn it back on
 				else if (DemoGraphics.playAudio == false) {
 					DemoGraphics.playAudio = true;
 					PlayAudio sound = new PlayAudio();
@@ -221,24 +243,20 @@ class MyGLSurfaceView extends GLSurfaceView {
 		/* Left action button */
 		case KeyEvent.KEYCODE_BUTTON_X:
 			if (pressed) {
-
 				if (mRenderer.hasBeenFound()) {
-					/*
-					 * If diamond is in view and the player has clicked the
-					 * trigger, move the diamond to a new location
-					 */
+					// If diamond is in view, centered, and the player has pressed
+					// the button, move the diamond to a new location
 					Random rand = new Random();
 					mRenderer.pyrX = rand.nextFloat() * 8 - 4.0f;
 					mRenderer.pyrY = rand.nextFloat() * 8 - 4.0f;
 					mRenderer.pyrZ = rand.nextFloat() * (-8) - 2.0f;
 
-					/*
-					 * Add a point for every found diamond and display score to
-					 * player
-					 */
+					// Add a point for every found diamond and display score to
+					// player
 					score += 1;
 					Toast.makeText(this.getContext(), String.valueOf(score),
 							Toast.LENGTH_SHORT).show();
+					
 					/*
 					 * For changing levels: if the player has reached a certain
 					 * score, change levels (cube texture) by updating the level
@@ -246,14 +264,14 @@ class MyGLSurfaceView extends GLSurfaceView {
 					 * achieved
 					 */
 
-					/* Level 2 */
+					// Level 2
 					if (score == 2) {
 						mRenderer.levelTwo = true;
 						Toast.makeText(this.getContext(), "Level 2",
 								Toast.LENGTH_LONG).show();
 
 					}
-					/* Level 3 */
+					// Level 3
 					else if (score == 4) {
 						mRenderer.levelThree = true;
 						Toast.makeText(this.getContext(), "Level 3",

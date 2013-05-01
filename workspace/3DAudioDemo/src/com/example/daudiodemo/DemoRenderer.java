@@ -29,19 +29,24 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 	// Used to keep score
 	public static int count;
 	
-	// Used to keep track of what level a player is in the game
-	// Different levels have different background textures
+	// Used to keep track of what level a player is in the game.
+	// Different levels have different background textures.
 	public boolean levelTwo = false;
 	public boolean levelThree = false;
 
-	// Declare as volatile because we are updating it from another thread
-	private float theta;
+	/*
+	 *  Some members are declared as volatile because we are updating them from
+	 *  another thread
+	 */
+	// For rotating player's view. Previously used when player view was controlled
+	// via Gametel Controller, now unused due to input from sensor hub.
+/*	private float theta;
 	private float phi = 3.14159265359f / 2;
 	public volatile boolean leftRotate = false;
 	public volatile boolean rightRotate = false;
 	public volatile boolean upRotate = false;
 	public volatile boolean downRotate = false;
-	// For pyramid location randomizing functionality
+*/	// For pyramid location randomizing functionality
 	public volatile float pyrX = 3.0f;
 	public volatile float pyrY = 0.0f;
 	public volatile float pyrZ = -6.0f;
@@ -51,8 +56,8 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 	private int windowHeight;
 
 	// Store the model matrix. This matrix is used to move models from object
-	// space (where each model can be thought
-	// of being located at the center of the universe) to world space.
+	// space (where each model can be thought of being located at the center
+	// of the universe) to world space.
 	private float[] mModelMatrix = new float[16];
 
 	// Store the view matrix. This can be thought of as our camera. This matrix
@@ -71,7 +76,9 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 	// Stores a copy of the model matrix specifically for the light position.
 	private float[] mLightModelMatrix = new float[16];
 
-	// Store our model data in a float buffer.
+	// Store our model data in a float buffer. Note there are texture coordinates
+	// for the cube, but not for the pyramids. Also, there are two different sets
+	// of color data for pyramids.
 	private final FloatBuffer mCubePositions;
 	private final FloatBuffer mCubeColors;
 	private final FloatBuffer mCubeNormals;
@@ -87,9 +94,6 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 
 	// This will be used to pass in the modelview matrix.
 	private int mMVMatrixHandle;
-
-	// This will be used to pass in the light position.
-	private int mLightPosHandle;
 
 	// This will be used to pass in the texture.
 	private int mTextureUniformHandle;
@@ -120,20 +124,9 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 
 	// Size of the texture coordinate data in elements.
 	private final int mTextureCoordinateDataSize = 2;
-
-	// Used to hold a light centered on the origin in model space. We need a 4th
-	// coordinate so we can get translations
-	// to work when we multiply this by our transformation matrices.
-	private final float[] mLightPosInModelSpace = new float[] { 0.0f, 0.0f,
-			0.0f, 1.0f };
-
-	// Used to hold the current position of the light in world space (after
-	// transformation via model matrix).
-	private final float[] mLightPosInWorldSpace = new float[4];
-
-	// Used to hold the transformed position of the light in eye space (after
-	// transformation via modelview matrix)
-	private final float[] mLightPosInEyeSpace = new float[4];
+	
+	// This is a handle to our light point program.
+	private int mPointProgramHandle;
 
 	// This is a handle to our per-vertex cube shading program.
 	private int mPerVertexProgramHandle;
@@ -144,22 +137,22 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 	// This is a handle to our pyramid shading program.
 	public int mPyramidProgramHandle;
 
-	// This is a handle to our light point program.
-	private int mPointProgramHandle;
-
 	// This is a handle to our texture data.
 	public int mTextureDataHandle;
 
-	// These are the things from OnDrawFrame
+	/**
+	 * These data members are from onDrawFrame(). They are declared here
+	 * to prevent memory leaks.
+	 */
 	private long time;
 	private float angleInDegrees;
 
-	// Position the eye in front of the origin.
+	// Eye position
 	final float eyeX = 0.0f;
 	final float eyeY = 0.0f;
 	final float eyeZ = -6.0f;
 
-	// We are looking toward the distance
+	// We are looking toward this position
 	private float lookX = 0.0f;
 	private float lookY = 0.0f;
 	private float lookZ = 12.0f;
@@ -185,270 +178,330 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 	private float elevPyr;
 	private float azPyr;
 
-	// float rollRadians = (float) SensorHubService.roll / 180* (float)
-	// Math.PI;
+	// Roll is currently unused in this application
 	private float pitchRadians;
 	private float yawRadians;
+	// private float rollRadians
 
-	// Convert object 3D coordinates to 2D window coordinates
+	// Used to convert position of octahedron in 3D space to 2D coordinates of
+	// screen to check if object is centered
 	private int[] view = new int[2];
 	private float[] spacePos = new float[4];
 	private float[] clipSpacePosIntermediate = new float[4];
 	private float[] clipSpacePos = new float[4];
-
-	// Normalize using w coordinate
 	private float[] ndcSpacePos = new float[3];
-	// Convert to 2D
 	float[] outputCoords = new float[2];
+	
+	/**
+	 * The following data members allow for variable lighting functionality. The
+	 * current code has been written such that this lighting is not used in the
+	 * demo. If lighting functionality is desired, the fragment shaders must be
+	 * rewritten to make use of the normals.
+	 */
+	// This will be used to pass in the light position.
+	private int mLightPosHandle;
+	
+	// Used to hold a light centered on the origin in model space. We need a 4th
+	// coordinate so we can get translations
+	// to work when we multiply this by our transformation matrices.
+	private final float[] mLightPosInModelSpace = new float[] { 0.0f, 0.0f,
+			0.0f, 1.0f };
 
-	// Initialize the model data.
+	// Used to hold the current position of the light in world space (after
+	// transformation via model matrix).
+	private final float[] mLightPosInWorldSpace = new float[4];
+
+	// Used to hold the transformed position of the light in eye space (after
+	// transformation via modelview matrix)
+	private final float[] mLightPosInEyeSpace = new float[4];
+
+	/**
+	 * Constructor. Here, we initialize the model data.
+	 */
 	public DemoRenderer(final Context activityContext) {
 		mActivityContext = activityContext;
 
-		// Define points for a cube.
+		// Define vertices for a cube.
 		// X, Y, Z
 		final float[] cubePositionData = {
-				// In OpenGL counter-clockwise winding is default. This means
-				// that when we look at a triangle,
-				// if the points are counter-clockwise we are looking at the
-				// "front". If not we are looking at
-				// the back. OpenGL has an optimization where all back-facing
-				// triangles are culled, since they
-				// usually represent the backside of an object and aren't
-				// visible anyways.
+			// In OpenGL, counter-clockwise winding is default. This means that
+			// when we look at a triangle, if the points are counter-clockwise
+			// we are looking at the "front". If not we are looking at the back.
+			// OpenGL has an optimization where all back-facing triangles are
+			// culled, since they usually represent the backside of an object
+			// and aren't visible anyways.
 
-				// Front face
-				-1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
-				-1.0f, 1.0f, 1.0f, -1.0f,
-				1.0f,
-				1.0f,
-				1.0f,
-				1.0f,
+			// Front face
+			-1.0f, 1.0f, 1.0f,
+			-1.0f, -1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f,
+			-1.0f, -1.0f, 1.0f,
+			1.0f, -1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f,
 
-				// Right face
-				1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, 1.0f,
-				-1.0f, 1.0f, 1.0f, -1.0f, -1.0f,
-				1.0f,
-				1.0f,
-				-1.0f,
+			// Right face
+			1.0f, 1.0f, 1.0f,
+			1.0f, -1.0f, 1.0f,
+			1.0f, 1.0f, -1.0f,
+			1.0f, -1.0f, 1.0f,
+			1.0f, -1.0f, -1.0f,
+			1.0f, 1.0f, -1.0f,
 
-				// Back face
-				1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f,
-				1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f,
-				1.0f,
-				-1.0f,
+			// Back face
+			1.0f, 1.0f, -1.0f,
+			1.0f, -1.0f, -1.0f,
+			-1.0f, 1.0f, -1.0f,
+			1.0f, -1.0f, -1.0f,
+			-1.0f, -1.0f, -1.0f,
+			-1.0f, 1.0f, -1.0f,
 
-				// Left face
-				-1.0f, 1.0f, -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, 1.0f,
-				-1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f,
-				1.0f,
+			// Left face
+			-1.0f, 1.0f, -1.0f,
+			-1.0f, -1.0f, -1.0f,
+			-1.0f, 1.0f, 1.0f,
+			-1.0f, -1.0f, -1.0f,
+			-1.0f, -1.0f, 1.0f,
+			-1.0f, 1.0f, 1.0f,
 
-				// Top face
-				-1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
-				-1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, -1.0f,
+			// Top face
+			-1.0f, 1.0f, -1.0f,
+			-1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, -1.0f,
+			-1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, 1.0f,
+			1.0f, 1.0f, -1.0f,
 
-				// Bottom face
-				1.0f, -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f,
-				1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, -1.0f, };
+			// Bottom face
+			1.0f, -1.0f, -1.0f,
+			1.0f, -1.0f, 1.0f,
+			-1.0f, -1.0f, -1.0f,
+			1.0f, -1.0f, 1.0f,
+			-1.0f, -1.0f, 1.0f,
+			-1.0f, -1.0f, -1.0f,
+			};
 
 		// R, G, B, A
 		final float[] cubeColorData = {
-				// Front face (red)
-				1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
-				0.0f, 1.0f, 1.0f, 0.0f,
-				0.0f,
-				1.0f,
-				1.0f,
-				0.0f,
-				0.0f,
-				1.0f,
-				1.0f,
-				0.0f,
-				0.0f,
-				1.0f,
+			// Front face (red)
+			1.0f, 0.0f, 0.0f, 1.0f,
+			1.0f, 0.0f, 0.0f, 1.0f,
+			1.0f, 0.0f, 0.0f, 1.0f,
+			1.0f, 0.0f, 0.0f, 1.0f,
+			1.0f, 0.0f, 0.0f, 1.0f,
+			1.0f, 0.0f, 0.0f, 1.0f,
 
-				// Right face (green)
-				0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-				0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f,
-				0.0f,
-				1.0f,
-				0.0f,
-				1.0f,
-				0.0f,
-				1.0f,
-				0.0f,
-				1.0f,
+			// Right face (green)
+			0.0f, 1.0f, 0.0f, 1.0f,
+			0.0f, 1.0f, 0.0f, 1.0f,
+			0.0f, 1.0f, 0.0f, 1.0f,
+			0.0f, 1.0f, 0.0f, 1.0f,
+			0.0f, 1.0f, 0.0f, 1.0f,
+			0.0f, 1.0f, 0.0f, 1.0f,
 
-				// Back face (blue)
-				0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-				1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f,
-				1.0f,
-				1.0f,
-				0.0f,
-				0.0f,
-				1.0f,
-				1.0f,
+			// Back face (blue)
+			0.0f, 0.0f, 1.0f, 1.0f,
+			0.0f, 0.0f, 1.0f, 1.0f,
+			0.0f, 0.0f, 1.0f, 1.0f,
+			0.0f, 0.0f, 1.0f, 1.0f,
+			0.0f, 0.0f, 1.0f, 1.0f,
+			0.0f, 0.0f, 1.0f, 1.0f,
 
-				// Left face (yellow)
-				1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-				0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-				1.0f,
-				1.0f,
-				0.0f,
-				1.0f,
+			// Left face (yellow)
+			1.0f, 1.0f, 0.0f, 1.0f,
+			1.0f, 1.0f, 0.0f, 1.0f,
+			1.0f, 1.0f, 0.0f, 1.0f,
+			1.0f, 1.0f, 0.0f, 1.0f,
+			1.0f, 1.0f, 0.0f, 1.0f,
+			1.0f, 1.0f, 0.0f, 1.0f,
 
-				// Top face (cyan)
-				0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f,
-				1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-				0.0f, 1.0f, 1.0f,
-				1.0f,
+			// Top face (cyan)
+			0.0f, 1.0f, 1.0f, 1.0f,
+			0.0f, 1.0f, 1.0f, 1.0f,
+			0.0f, 1.0f, 1.0f, 1.0f,
+			0.0f, 1.0f, 1.0f, 1.0f,
+			0.0f, 1.0f, 1.0f, 1.0f,
+			0.0f, 1.0f, 1.0f, 1.0f,
 
-				// Bottom face (magenta)
-				1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f,
-				1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-				1.0f, 0.0f, 1.0f, 1.0f };
+			// Bottom face (magenta)
+			1.0f, 0.0f, 1.0f, 1.0f,
+			1.0f, 0.0f, 1.0f, 1.0f,
+			1.0f, 0.0f, 1.0f, 1.0f,
+			1.0f, 0.0f, 1.0f, 1.0f,
+			1.0f, 0.0f, 1.0f, 1.0f,
+			1.0f, 0.0f, 1.0f, 1.0f };
 
 		// X, Y, Z
 		// The normal is used in light calculations and is a vector which points
 		// orthogonal to the plane of the surface. For a cube model, the normals
 		// should be orthogonal to the points of each face.
 		final float[] cubeNormalData = {
-				// Front face
-				0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-				0.0f, 1.0f, 0.0f, 0.0f,
-				1.0f,
-				0.0f,
-				0.0f,
-				1.0f,
+			// Front face
+			0.0f, 0.0f, 1.0f,
+			0.0f, 0.0f, 1.0f,
+			0.0f, 0.0f, 1.0f,
+			0.0f, 0.0f, 1.0f,
+			0.0f, 0.0f, 1.0f,
+			0.0f, 0.0f, 1.0f,
 
-				// Right face
-				1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-				0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-				1.0f,
-				0.0f,
-				0.0f,
+			// Right face
+			1.0f, 0.0f, 0.0f,
+			1.0f, 0.0f, 0.0f,
+			1.0f, 0.0f, 0.0f,
+			1.0f, 0.0f, 0.0f,
+			1.0f, 0.0f, 0.0f,
+			1.0f, 0.0f, 0.0f,
 
-				// Back face
-				0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f,
-				0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f,
-				0.0f,
-				-1.0f,
+			// Back face
+			0.0f, 0.0f, -1.0f,
+			0.0f, 0.0f, -1.0f,
+			0.0f, 0.0f, -1.0f,
+			0.0f, 0.0f, -1.0f,
+			0.0f, 0.0f, -1.0f,
+			0.0f, 0.0f, -1.0f,
 
-				// Left face
-				-1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f,
-				0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f,
-				0.0f,
+			// Left face
+			-1.0f, 0.0f, 0.0f,
+			-1.0f, 0.0f, 0.0f,
+			-1.0f, 0.0f, 0.0f,
+			-1.0f, 0.0f, 0.0f,
+			-1.0f, 0.0f, 0.0f,
+			-1.0f, 0.0f, 0.0f,
 
-				// Top face
-				0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-				1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+			// Top face
+			0.0f, 1.0f, 0.0f,
+			0.0f, 1.0f, 0.0f,
+			0.0f, 1.0f, 0.0f,
+			0.0f, 1.0f, 0.0f,
+			0.0f, 1.0f, 0.0f,
+			0.0f, 1.0f, 0.0f,
 
-				// Bottom face
-				0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
-				-1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f };
+			// Bottom face
+			0.0f, -1.0f, 0.0f,
+			0.0f, -1.0f, 0.0f,
+			0.0f, -1.0f, 0.0f,
+			0.0f, -1.0f, 0.0f,
+			0.0f, -1.0f, 0.0f,
+			0.0f, -1.0f, 0.0f };
 
 		// S, T (or X, Y)
 		// Texture coordinate data.
 		// Because images have a Y axis pointing downward (values increase as
-		// you move down the image) while
-		// OpenGL has a Y axis pointing upward, we adjust for that here by
-		// flipping the Y axis.
+		// you move down the image) while OpenGL has a Y axis pointing upward,
+		// we adjust for that here by flipping the Y axis.
 		// Since we are texturing the inside of a cubical room with a cube map
-		// texture, all of the
-		// faces are actually inverted. These coordinates work for a horizontal
-		// cross cube map.
+		// texture, all of the faces are actually inverted. These coordinates
+		// work for a horizontal cross cube map.
 		final float[] cubeTextureCoordinateData = {
-				// Front face
-				0.0f, 2.0f / 3, 0.0f, 1.0f / 3, 0.25f, 2.0f / 3, 0.0f,
-				1.0f / 3,
-				0.25f,
-				1.0f / 3,
-				0.25f,
-				2.0f / 3,
+			// Front face
+			0.0f, 2.0f / 3,
+			0.0f, 1.0f / 3,
+			0.25f, 2.0f / 3,
+			0.0f, 1.0f / 3,
+			0.25f, 1.0f / 3,
+			0.25f, 2.0f / 3,
 
-				// Right face
-				0.25f, 2.0f / 3, 0.25f, 1.0f / 3, 0.5f, 2.0f / 3, 0.25f,
-				1.0f / 3, 0.5f,
-				1.0f / 3,
-				0.5f,
-				2.0f / 3,
+			// Right face
+			0.25f, 2.0f / 3,
+			0.25f, 1.0f / 3,
+			0.5f, 2.0f / 3,
+			0.25f, 1.0f / 3,
+			0.5f, 1.0f / 3,
+			0.5f, 2.0f / 3,
 
-				// Back face
-				0.5f, 2.0f / 3, 0.5f, 1.0f / 3, 0.75f, 2.0f / 3, 0.5f,
-				1.0f / 3, 0.75f, 1.0f / 3,
-				0.75f,
-				2.0f / 3,
+			// Back face
+			0.5f, 2.0f / 3,
+			0.5f, 1.0f / 3,
+			0.75f, 2.0f / 3,
+			0.5f, 1.0f / 3,
+			0.75f, 1.0f / 3,
+			0.75f, 2.0f / 3,
 
-				// Left face
-				0.75f, 2.0f / 3, 0.75f, 1.0f / 3, 1.0f, 2.0f / 3, 0.75f,
-				1.0f / 3, 1.0f, 1.0f / 3, 1.0f,
-				2.0f / 3,
+			// Left face
+			0.75f, 2.0f / 3,
+			0.75f, 1.0f / 3,
+			1.0f, 2.0f / 3,
+			0.75f, 1.0f / 3,
+			1.0f, 1.0f / 3,
+			1.0f, 2.0f / 3,
 
-				// Top face
-				0.5f, 1.0f, 0.25f, 1.0f, 0.5f, 2.0f / 3, 0.25f, 1.0f, 0.25f,
-				2.0f / 3, 0.5f, 2.0f / 3,
+			// Top face
+			0.5f, 1.0f,
+			0.25f, 1.0f,
+			0.5f, 2.0f / 3,
+			0.25f, 1.0f,
+			0.25f, 2.0f / 3,
+			0.5f, 2.0f / 3,
 
-				// Bottom face
-				0.5f, 1.0f / 3, 0.25f, 1.0f / 3, 0.5f, 0.0f, 0.25f, 1.0f / 3,
-				0.25f, 0.0f, 0.5f, 0.0f };
+			// Bottom face
+			0.5f, 1.0f / 3,
+			0.25f, 1.0f / 3,
+			0.5f, 0.0f,
+			0.25f, 1.0f / 3,
+			0.25f, 0.0f,
+			0.5f, 0.0f };
 
-		/** The initial position definition */
-		final float pyramidPositionData[] = { 0.0f, 1.0f, 0.0f, // Top Of
-																// Triangle
-																// (Front)
-				-1.0f, -1.0f, 1.0f, // Left Of Triangle (Front)
-				1.0f, -1.0f, 1.0f, // Right Of Triangle (Front)
+		// Initial pyramid position definition
+		final float pyramidPositionData[] = {
+			0.0f, 1.0f, 0.0f, // Top Of	Triangle (Front)
+			-1.0f, -1.0f, 1.0f, // Left Of Triangle (Front)
+			1.0f, -1.0f, 1.0f, // Right Of Triangle (Front)
 
-				0.0f, 1.0f, 0.0f, // Top Of Triangle (Right)
-				1.0f, -1.0f, 1.0f, // Left Of Triangle (Right)
-				1.0f, -1.0f, -1.0f, // Right Of Triangle (Right)
+			0.0f, 1.0f, 0.0f, // Top Of Triangle (Right)
+			1.0f, -1.0f, 1.0f, // Left Of Triangle (Right)
+			1.0f, -1.0f, -1.0f, // Right Of Triangle (Right)
 
-				0.0f, 1.0f, 0.0f, // Top Of Triangle (Back)
-				1.0f, -1.0f, -1.0f, // Left Of Triangle (Back)
-				-1.0f, -1.0f, -1.0f, // Right Of Triangle (Back)
+			0.0f, 1.0f, 0.0f, // Top Of Triangle (Back)
+			1.0f, -1.0f, -1.0f, // Left Of Triangle (Back)
+			-1.0f, -1.0f, -1.0f, // Right Of Triangle (Back)
 
-				0.0f, 1.0f, 0.0f, // Top Of Triangle (Left)
-				-1.0f, -1.0f, -1.0f, // Left Of Triangle (Left)
-				-1.0f, -1.0f, 1.0f // Right Of Triangle (Left)
+			0.0f, 1.0f, 0.0f, // Top Of Triangle (Left)
+			-1.0f, -1.0f, -1.0f, // Left Of Triangle (Left)
+			-1.0f, -1.0f, 1.0f // Right Of Triangle (Left)
 		};
-		/** The initial color definition */
-		final float pyramidColorData[] = { 1.0f, 0.0f, 0.0f, 1.0f, // Red
-				0.0f, 1.0f, 0.0f, 1.0f, // Green
-				0.0f, 0.0f, 1.0f, 1.0f, // Blue
+		
+		// Default pyramid color data. Pyramid is unlit
+		final float pyramidColorData[] = { 
+			1.0f, 0.0f, 0.0f, 1.0f, // Red
+			0.0f, 1.0f, 0.0f, 1.0f, // Green
+			0.0f, 0.0f, 1.0f, 1.0f, // Blue
 
-				1.0f, 0.0f, 0.0f, 1.0f, // Red
-				0.0f, 0.0f, 1.0f, 1.0f, // Blue
-				0.0f, 1.0f, 0.0f, 1.0f, // Green
+			1.0f, 0.0f, 0.0f, 1.0f, // Red
+			0.0f, 0.0f, 1.0f, 1.0f, // Blue
+			0.0f, 1.0f, 0.0f, 1.0f, // Green
 
-				1.0f, 0.0f, 0.0f, 1.0f, // Red
-				0.0f, 1.0f, 0.0f, 1.0f, // Green
-				0.0f, 0.0f, 1.0f, 1.0f, // Blue
+			1.0f, 0.0f, 0.0f, 1.0f, // Red
+			0.0f, 1.0f, 0.0f, 1.0f, // Green
+			0.0f, 0.0f, 1.0f, 1.0f, // Blue
 
-				1.0f, 0.0f, 0.0f, 1.0f, // Red
-				0.0f, 0.0f, 1.0f, 1.0f, // Blue
-				0.0f, 1.0f, 0.0f, 1.0f // Green
-		};
-
-		final float foundPyramidColorData[] = { 1.0f, 0.5f, 0.5f, 1.0f, // Red
-				0.5f, 1.0f, 0.5f, 1.0f, // Green
-				0.5f, 0.5f, 1.0f, 1.0f, // Blue
-
-				1.0f, 0.5f, 0.5f, 1.0f, // Red
-				0.5f, 0.5f, 1.0f, 1.0f, // Blue
-				0.5f, 1.0f, 0.5f, 1.0f, // Green
-
-				1.0f, 0.5f, 0.5f, 1.0f, // Red
-				0.5f, 1.0f, 0.5f, 1.0f, // Green
-				0.5f, 0.5f, 1.0f, 1.0f, // Blue
-
-				1.0f, 0.5f, 0.5f, 1.0f, // Red
-				0.5f, 0.5f, 1.0f, 1.0f, // Blue
-				0.5f, 1.0f, 0.5f, 1.0f // Green
+			1.0f, 0.0f, 0.0f, 1.0f, // Red
+			0.0f, 0.0f, 1.0f, 1.0f, // Blue
+			0.0f, 1.0f, 0.0f, 1.0f // Green
 		};
 
-		/** The initial normal definition */
-		final float pyramidNormalData[] = { 0.0f, 1.0f, 1.0f, // Top Of Triangle
-																// (Front)
+		// Pyramid color data when octahedron is in center of player's
+		// window. Pyramid is lit up pale; can be changed to different
+		// colors if desired
+		final float foundPyramidColorData[] = {
+			1.0f, 0.5f, 0.5f, 1.0f, // Red
+			0.5f, 1.0f, 0.5f, 1.0f, // Green
+			0.5f, 0.5f, 1.0f, 1.0f, // Blue
+
+			1.0f, 0.5f, 0.5f, 1.0f, // Red
+			0.5f, 0.5f, 1.0f, 1.0f, // Blue
+			0.5f, 1.0f, 0.5f, 1.0f, // Green
+
+			1.0f, 0.5f, 0.5f, 1.0f, // Red
+			0.5f, 1.0f, 0.5f, 1.0f, // Green
+			0.5f, 0.5f, 1.0f, 1.0f, // Blue
+
+			1.0f, 0.5f, 0.5f, 1.0f, // Red
+			0.5f, 0.5f, 1.0f, 1.0f, // Blue
+			0.5f, 1.0f, 0.5f, 1.0f // Green
+		};
+
+		// Initial pyramid normal definition
+		final float pyramidNormalData[] = {
+				0.0f, 1.0f, 1.0f, // Top Of Triangle (Front)
 				0.0f, 1.0f, 1.0f, // Left Of Triangle (Front)
 				0.0f, 1.0f, 1.0f, // Right Of Triangle (Front)
 
@@ -466,34 +519,28 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		};
 
 		// Initialize the buffers.
-		mCubePositions = ByteBuffer
-				.allocateDirect(cubePositionData.length * mBytesPerFloat)
+		mCubePositions = ByteBuffer.allocateDirect(cubePositionData.length * mBytesPerFloat)
 				.order(ByteOrder.nativeOrder()).asFloatBuffer();
 		mCubePositions.put(cubePositionData).position(0);
 
-		mCubeColors = ByteBuffer
-				.allocateDirect(cubeColorData.length * mBytesPerFloat)
+		mCubeColors = ByteBuffer.allocateDirect(cubeColorData.length * mBytesPerFloat)
 				.order(ByteOrder.nativeOrder()).asFloatBuffer();
 		mCubeColors.put(cubeColorData).position(0);
 
-		mCubeNormals = ByteBuffer
-				.allocateDirect(cubeNormalData.length * mBytesPerFloat)
+		mCubeNormals = ByteBuffer.allocateDirect(cubeNormalData.length * mBytesPerFloat)
 				.order(ByteOrder.nativeOrder()).asFloatBuffer();
 		mCubeNormals.put(cubeNormalData).position(0);
 
 		mCubeTextureCoordinates = ByteBuffer
-				.allocateDirect(
-						cubeTextureCoordinateData.length * mBytesPerFloat)
+				.allocateDirect(cubeTextureCoordinateData.length * mBytesPerFloat)
 				.order(ByteOrder.nativeOrder()).asFloatBuffer();
 		mCubeTextureCoordinates.put(cubeTextureCoordinateData).position(0);
 
-		mPyramidPositions = ByteBuffer
-				.allocateDirect(pyramidPositionData.length * mBytesPerFloat)
+		mPyramidPositions = ByteBuffer.allocateDirect(pyramidPositionData.length * mBytesPerFloat)
 				.order(ByteOrder.nativeOrder()).asFloatBuffer();
 		mPyramidPositions.put(pyramidPositionData).position(0);
 
-		mPyramidColors = ByteBuffer
-				.allocateDirect(pyramidColorData.length * mBytesPerFloat)
+		mPyramidColors = ByteBuffer.allocateDirect(pyramidColorData.length * mBytesPerFloat)
 				.order(ByteOrder.nativeOrder()).asFloatBuffer();
 		mPyramidColors.put(pyramidColorData).position(0);
 
@@ -502,54 +549,34 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 				.order(ByteOrder.nativeOrder()).asFloatBuffer();
 		mFoundPyramidColors.put(foundPyramidColorData).position(0);
 
-		mPyramidNormals = ByteBuffer
-				.allocateDirect(pyramidNormalData.length * mBytesPerFloat)
+		mPyramidNormals = ByteBuffer.allocateDirect(pyramidNormalData.length * mBytesPerFloat)
 				.order(ByteOrder.nativeOrder()).asFloatBuffer();
 		mPyramidNormals.put(pyramidNormalData).position(0);
 	}
 
 	protected String getVertexShader() {
-		// TODO: Explain why we normalize the vectors, explain some of the
-		// vector math behind it all. Explain what is eye space.
-		final String vertexShader = "uniform mat4 u_MVPMatrix;      \n" // A
-																		// constant
-																		// representing
-																		// the
-																		// combined
-																		// model/view/projection
-																		// matrix.
-				+ "uniform mat4 u_MVMatrix;       \n" // A constant representing
-														// the combined
-														// model/view matrix.
+		final String vertexShader = 
+				// A constant representing the combined model/view/projection matrix.
+				"uniform mat4 u_MVPMatrix;      \n" 
+				// A constant representing the combined model/view matrix.
+				+ "uniform mat4 u_MVMatrix;       \n"
+				// Per-vertex position information we will pass in.
+				+ "attribute vec4 a_Position;     \n"
+				// Per-vertex color information we will pass in.
+				+ "attribute vec4 a_Color;        \n"
+				// Per-vertex normal information we will pass in.
+				+ "attribute vec3 a_Normal;       \n"
+				// Per-vertex texture coordinate information we will pass in.
+				+ "attribute vec2 a_TexCoordinate; \n"
 
-				+ "attribute vec4 a_Position;     \n" // Per-vertex position
-														// information we will
-														// pass in.
-				+ "attribute vec4 a_Color;        \n" // Per-vertex color
-														// information we will
-														// pass in.
-				+ "attribute vec3 a_Normal;       \n" // Per-vertex normal
-														// information we will
-														// pass in.
-				+ "attribute vec2 a_TexCoordinate; \n" // Per-vertex texture
-														// coordinate
-														// information we will
-														// pass in.
+				// These will be passed into the fragment shader.
+				+ "varying vec3 v_Position; 		\n"
+				+ "varying vec4 v_Color;         	\n" 
+				+ "varying vec3 v_Normal;         \n" 
+				+ "varying vec2 v_TexCoordinate;  \n"
 
-				+ "varying vec3 v_Position; 		\n" // This will be passed into
-				// the fragment shader.
-				+ "varying vec4 v_Color;         	\n" // This will be passed
-														// into the fragment
-														// shader.
-				+ "varying vec3 v_Normal;         \n" // This will be passed
-														// into the fragment
-														// shader.
-				+ "varying vec2 v_TexCoordinate;  \n" // This will be passed
-														// into the fragment
-														// shader.
-
-				+ "void main()                    \n" // The entry point for our
-														// vertex shader.
+				// The entry point for our vertex shader.
+				+ "void main()                    \n"
 				+ "{                              \n"
 				// Transform the vertex into eye space.
 				+ "	v_Position = vec3(u_MVMatrix * a_Position);			\n"
@@ -560,9 +587,8 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 				// Transform the normal's orientation into eye space.
 				+ "	v_Normal = vec3(u_MVMatrix * vec4(a_Normal, 0.0));	\n"
 				// gl_Position is a special variable used to store the final
-				// position.
-				// Multiply the vertex by the matrix to get the final point in
-				// normalized screen coordinates.
+				// position. Multiply the vertex by the matrix to get the final
+				// point in normalized screen coordinates.
 				+ "   gl_Position = u_MVPMatrix * a_Position;             \n"
 				+ "}                                                      \n";
 
@@ -570,101 +596,72 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 	}
 
 	protected String getFragmentShader(String type) {
-		final String fragmentShader = "precision mediump float;       \n" // Set
-																			// the
-																			// default
-																			// precision
-																			// to
-																			// medium.
-																			// We
-																			// don't
-																			// need
-																			// as
-																			// high
-																			// of
-																			// a
-																			// precision
-																			// in
-																			// the
-																			// fragment
-																			// shader.
-				+ "uniform sampler2D u_Texture;	\n" // The input texture.
-				+ "varying vec3 v_Position; 		\n" // Interpolated position for
-				// this fragment.
-				+ "varying vec4 v_Color;          \n" // This is the color from
-														// the vertex shader
-														// interpolated across
-														// the
-														// triangle per
-														// fragment.
-				+ "varying vec3 v_Normal;      	\n" // Interpolated normal for
-													// this fragment.
-				+ "varying vec2 v_TexCoordinate;	\n" // Interpolated texture
-														// coordinate per
-														// fragment.
-				+ "void main()                    \n" // The entry point for our
-														// fragment shader.
+		/**
+		 * This fragment shader combines the texture and color in the output object.
+		 * If lighting functionality is desired, main() of the shader must be changed
+		 * to allow the final color to reflect light hitting the object.
+		 */
+		final String fragmentShader =
+				// Set the default precision to medium. We don't need as high of a
+				// precision in the fragment shader.
+				"precision mediump float;       \n"
+				// The input texture.
+				+ "uniform sampler2D u_Texture;	\n"
+				// Interpolated position for this fragment.
+				+ "varying vec3 v_Position; 		\n"
+				// This is the color from the vertex shader interpolated across the
+				// triangle per fragment.
+				+ "varying vec4 v_Color;          \n"
+				// Interpolated normal for this fragment.
+				+ "varying vec3 v_Normal;      	\n"
+				// Interpolated texture coordinate per fragment.
+				+ "varying vec2 v_TexCoordinate;	\n"
+				
+				// The entry point for our fragment shader.
+				+ "void main()                    \n"
 				+ "{                              \n"
-				// Multiply the color by the texture value to get final output
-				// color.
+				// Multiply the color by the texture value to get final output color.
 				+ "gl_FragColor = (v_Color * texture2D(u_Texture, v_TexCoordinate));	  \n"
 				+ "}                              \n";
 
-		final String cubeFragmentShader = "precision mediump float;       \n" // Set
-																				// the
-																				// default
-																				// precision
-																				// to
-																				// medium.
-																				// We
-																				// don't
-																				// need
-																				// as
-																				// high
-																				// of
-																				// a
-																				// precision
-																				// in
-																				// the
-																				// fragment
-																				// shader.
-				+ "uniform sampler2D u_Texture;	\n" // The input texture.
-				+ "varying vec2 v_TexCoordinate;	\n" // Interpolated texture
-														// coordinate per
-														// fragment.
-				+ "void main()                    \n" // The entry point for our
-														// fragment shader.
+		/**
+		 * This fragment shader only outputs the texture onto the object. It is used
+		 * for the room cube. If lighting functionality is desired, main() of the
+		 * shader must be changed to allow the final color to reflect light hitting
+		 * the object.
+		 */
+		final String cubeFragmentShader = 
+				// Set the default precision to medium. We don't need as high of a
+				// precision in the fragment shader.
+				"precision mediump float;       \n"
+				// The input texture.
+				+ "uniform sampler2D u_Texture;	\n"
+				// Interpolated texture coordinate per fragment.
+				+ "varying vec2 v_TexCoordinate;	\n"
+				
+				// The entry point for our fragment shader.
+				+ "void main()                    \n"
 				+ "{                              \n"
 				// No color to affect texture value.
 				+ "gl_FragColor = texture2D(u_Texture, v_TexCoordinate);	  \n"
 				+ "}                              \n";
 
-		final String pyramidFragmentShader = "precision mediump float;       \n" // Set
-																					// the
-																					// default
-																					// precision
-																					// to
-																					// medium.
-																					// We
-																					// don't
-																					// need
-																					// as
-																					// high
-																					// of
-																					// a
-																					// precision
-																					// in
-																					// the
-																					// fragment
-																					// shader.
-				+ "varying vec4 v_Color;          \n" // This is the color from
-														// the vertex shader
-														// interpolated across
-														// the
-														// triangle per
-														// fragment.
-				+ "void main()                    \n" // The entry point for our
-														// fragment shader.
+		/**
+		 * This fragment shader only outputs color onto the object. It is used for
+		 * the pyramids that make up the octahedron. If lighting functionality is
+		 * desired, main() of the shader must be changed to allow the final color
+		 * to reflect light hitting the object.
+		 */
+		final String pyramidFragmentShader =
+				// Set the default precision to medium. We don't need as high of a
+				// precision in the fragment shader.
+				"precision mediump float;       \n"
+				// This is the color from the vertex shader interpolated across the
+				// triangle per fragment.
+				+ "varying vec4 v_Color;          \n"
+				
+				// The entry point for our fragment shader.
+				+ "void main()                    \n"
 				+ "{                              \n"
 				// Only show final output color.
 				+ "gl_FragColor = v_Color;	  \n"
@@ -690,6 +687,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		// Enable depth testing
 		GLES20.glEnable(GLES20.GL_DEPTH_TEST);
 
+		// Initialize the shaders.
 		final String vertexShader = getVertexShader();
 		final String fragmentShader = getFragmentShader("");
 		final String cubeFragmentShader = getFragmentShader("cube");
@@ -717,7 +715,9 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 				new String[] { "a_Position", "a_Color", "a_Normal",
 						"a_TexCoordinate" });
 
-		// Define a simple shader program for our point.
+		// This is to show where a source of light is in the room with
+		// a point. This code is currently unused. Here, we define a
+		// simple shader program for our point.
 		final String pointVertexShader = "uniform mat4 u_MVPMatrix;      \n"
 				+ "attribute vec4 a_Position;     \n"
 				+ "void main()                    \n"
@@ -741,7 +741,9 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		mPointProgramHandle = createAndLinkProgram(pointVertexShaderHandle,
 				pointFragmentShaderHandle, new String[] { "a_Position" });
 
-		// Load the texture
+		// Load the texture from our resources. If a different texture is
+		// desired, save a new .png into the drawable-nodpi folder. It will
+		// autogenerate a resource to use in R.java.
 		mTextureDataHandle = TextureHelper.loadTexture(mActivityContext,
 				R.drawable.waterfall_hires);
 	}
@@ -754,8 +756,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		windowHeight = height;
 
 		// Create a new perspective projection matrix. The height will stay the
-		// same
-		// while the width will vary as per aspect ratio.
+		// same while the width will vary as per aspect ratio.
 		final float ratio = (float) width / height;
 		final float left = -ratio;
 		final float right = ratio;
@@ -772,15 +773,14 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 	public void onDrawFrame(GL10 glUnused) {
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
-		time = SystemClock.uptimeMillis() % 10000L;
-
 		// Do a complete rotation every 10 seconds.
+		time = SystemClock.uptimeMillis() % 10000L;
 		angleInDegrees = (360.0f / 10000.0f) * ((int) time);
 
 		// ADD LEVELS HERE.
-		// Additional levels are created by changing the
-		// texture of the cube to different images of various
-		// environemnetsChange the texture to simulate different levels!
+		// Additional levels are created by changing the texture of the cube to
+		// different images of various environments. Change the texture to
+		// simulate different levels!
 
 		/* Level 2 */
 		if (levelTwo == true) {
@@ -799,19 +799,9 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 
 		// END LEVELS.
 
-		// Calculate position of the light. Rotate and then push into the
-		// distance.
-		Matrix.setIdentityM(mLightModelMatrix, 0);
-		Matrix.translateM(mLightModelMatrix, 0, 0.0f, 0.0f, -5.0f);
-		Matrix.rotateM(mLightModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
-		Matrix.translateM(mLightModelMatrix, 0, 0.0f, 0.0f, 2.0f);
-
-		Matrix.multiplyMV(mLightPosInWorldSpace, 0, mLightModelMatrix, 0,
-				mLightPosInModelSpace, 0);
-		Matrix.multiplyMV(mLightPosInEyeSpace, 0, mViewMatrix, 0,
-				mLightPosInWorldSpace, 0);
-
-		// Draw some pyramids.
+		// Draw some pyramids and put them them together to make an octahedron.
+		// The octahedron is scaled down in size and moved to a particular
+		// location in the room. It does a full rotation every ten seconds.
 		Matrix.setIdentityM(mModelMatrix, 0);
 		Matrix.translateM(mModelMatrix, 0, pyrX, pyrY + 0.4f, pyrZ);
 		Matrix.rotateM(mModelMatrix, 0, angleInDegrees, 0.0f, -1.0f, 0.0f);
@@ -826,36 +816,51 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		Matrix.translateM(mModelMatrix, 0, 0.0f, -2.0f, 0.0f);
 		drawPyramid(GLES20.GL_CW, objectFound);
 
-		// Draw cube for room.
+		// Draw cube for room. Scaled in the negative direction to have
+		// normals facing inwards.
 		Matrix.setIdentityM(mModelMatrix, 0);
 		Matrix.translateM(mModelMatrix, 0, 0.0f, 0.0f, -6.0f);
 		Matrix.scaleM(mModelMatrix, 0, -4.0f, -4.0f, -4.0f);
 		drawCube(GLES20.GL_CCW);
 
+		// Currently unused light functionality. Sends light spinning around
+		// the room at one revolution per ten seconds and draws a point to
+		// indicate the light position. Drawing currently commented out.
+		// Calculate position of the light. Rotate and then push into the
+		// distance.
+		Matrix.setIdentityM(mLightModelMatrix, 0);
+		Matrix.translateM(mLightModelMatrix, 0, 0.0f, 0.0f, -5.0f);
+		Matrix.rotateM(mLightModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
+		Matrix.translateM(mLightModelMatrix, 0, 0.0f, 0.0f, 2.0f);
+
+		Matrix.multiplyMV(mLightPosInWorldSpace, 0, mLightModelMatrix, 0,
+				mLightPosInModelSpace, 0);
+		Matrix.multiplyMV(mLightPosInEyeSpace, 0, mViewMatrix, 0,
+				mLightPosInWorldSpace, 0);
+		
 		// Draw a point to indicate the light.
 		GLES20.glUseProgram(mPointProgramHandle);
 		// drawLight();
 
-		// We are looking toward the distance
-
-		// float rollRadians = (float) SensorHubService.roll / 180* (float)
-		// Math.PI;
+		/*
+		 *  Get pitch and yaw data from the sensor hub. Roll is currently unused
+		 *  because it only provides rotation in the plane of the user's face,
+		 *  not actually changing the position faced. The sensor hub provides
+		 *  angle data in degrees, so we convert to radians to calculate
+		 *  spherical coordinates.
+		 */
 		pitchRadians = (float) SensorHubService.pitch / 180 * (float) Math.PI;
 		yawRadians = (float) SensorHubService.yaw / 180 * (float) Math.PI;
+		// rollRadians = (float) SensorHubService.roll / 180* (float) Math.PI;
 
 		/*
 		 * If your head is the x/y plane, then yaw is the rotation around the
-		 * y-axis and pitch is the rotation around the x-axis and roll is the
+		 * y-axis, pitch is the rotation around the x-axis, and roll is the
 		 * rotation around the z-axis
 		 */
 
-		// lookX = 5.0f * FloatMath.cos(-pitchRadians)
-		// * FloatMath.sin(-yawRadians);
-		// lookY = 5.0f * FloatMath.sin(-pitchRadians);
-		// lookZ = 5.0f * FloatMath.cos(-pitchRadians)
-		// * FloatMath.cos(-yawRadians) - 6.0f;
-
-		// we calibrated in opposite direction so the angles are opposite
+		// Calculating Cartesian coordinates of position to face.
+		// We calibrated in opposite direction so the angles are opposite
 		lookX = -5.0f * FloatMath.cos(pitchRadians) * FloatMath.sin(yawRadians);
 		lookY = -5.0f * FloatMath.sin(pitchRadians);
 		lookZ = 5.0f * FloatMath.cos(pitchRadians) * FloatMath.cos(yawRadians)
@@ -897,7 +902,14 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY,
 				lookZ, upX, upY, upZ);
 
-		// Convert object 3D coordinates to 2D window coordinates
+		/*
+		 *  In this section, the 3D coordinates of the octahedron are converted
+		 *  to 2D window coordinates. This allows us to tell whether or not the
+		 *  octahedron is lined up in the center of the player's screen, so the
+		 *  game can recognize whether or not the player has successfully found
+		 *  the diamond.
+		 */
+		
 		view[0] = windowWidth;
 		view[1] = windowHeight;
 		spacePos[0] = pyrX;
@@ -906,8 +918,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		spacePos[3] = 1.0f;
 
 		// Convert object coordinates to clip space coordinates
-		Matrix.multiplyMV(clipSpacePosIntermediate, 0, mViewMatrix, 0,
-				spacePos, 0);
+		Matrix.multiplyMV(clipSpacePosIntermediate, 0, mViewMatrix, 0, spacePos, 0);
 		Matrix.multiplyMV(clipSpacePos, 0, mProjectionMatrix, 0,
 				clipSpacePosIntermediate, 0);
 
@@ -920,7 +931,10 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		outputCoords[0] = ((ndcSpacePos[0] + 1.0f) / 2.0f) * view[0];
 		outputCoords[1] = ((ndcSpacePos[1] + 1.0f) / 2.0f) * view[1];
 
-		// Check if octahedron is displayed in center of viewscreen
+		// Check if octahedron is displayed in center of viewscreen.
+		// Right now, an arbitrary window size of 100x100 pixels has
+		// been chosen where the game recognizes the diamond as found.
+		// Can be changed at programmer's discretion.
 		if (outputCoords[0] > view[0] / 2 - 50
 				&& outputCoords[0] < view[0] / 2 + 50) {
 			if (outputCoords[1] > view[1] / 2 - 50
@@ -934,11 +948,18 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		}
 	}
 
+	/**
+	 * Provides function to use in DemoGraphics.java to see if diamond
+	 * has been found.
+	 */
 	public boolean hasBeenFound() {
 		return objectFound;
 	}
 
-	// Draws a cube.
+	/**
+	 *  Draws a cube. Face rotation is set by the input, and texture is 
+	 *  bound to the cube faces here.
+	 */
 	private void drawCube(int mode) {
 		// Set face rotation
 		GLES20.glFrontFace(mode);
@@ -1006,8 +1027,7 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		GLES20.glEnableVertexAttribArray(mTextureCoordinateHandle);
 
 		// This multiplies the view matrix by the model matrix, and stores the
-		// result in the MVP matrix
-		// (which currently contains model * view).
+		// result in the MVP matrix (which currently contains model * view).
 		Matrix.multiplyMM(mMVPMatrix, 0, mViewMatrix, 0, mModelMatrix, 0);
 
 		// Pass in the modelview matrix.
@@ -1029,6 +1049,12 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 36);
 	}
 
+	/**
+	 *  Draws a pyramid. Face rotation is set by the input as well as a boolean
+	 *  found, which tells the function whether or not the game recognizes the
+	 *  diamond as found by the player. If so, the found pyramid color data is
+	 *  passed in. If not, the default pyramid color data is passed in.
+	 */
 	private void drawPyramid(int mode, boolean found) {
 		// Set face rotation
 		GLES20.glFrontFace(mode);
@@ -1055,8 +1081,8 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 
 		GLES20.glEnableVertexAttribArray(mPositionHandle);
 
-		// Pass in the color information depending on whether or not it has been
-		// found
+		// Pass in the color information depending on whether or not octahedron
+		// has been found
 		if (found) {
 			mFoundPyramidColors.position(0);
 			GLES20.glVertexAttribPointer(mColorHandle, mColorDataSize,
@@ -1101,7 +1127,8 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 	}
 
 	/**
-	 * Draws a point representing the position of the light.
+	 * Draws a point representing the position of the light. Currently
+	 * unused.
 	 */
 	private void drawLight() {
 		final int pointMVPMatrixHandle = GLES20.glGetUniformLocation(
@@ -1126,6 +1153,12 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		GLES20.glDrawArrays(GLES20.GL_POINTS, 0, 1);
 	}
 
+	/*
+	 * The following functions are used only in the shaders for the light point.
+	 * The vertex and fragment shaders for the cube and pyramid are compiled and
+	 * linked using the functions from ShaderHelper instead.
+	 */
+	
 	/**
 	 * Helper function to compile a shader.
 	 * 
