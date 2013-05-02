@@ -5,11 +5,10 @@ import java.util.Arrays;
 import android.util.FloatMath;
 
 public class PlayAudio extends AsyncTask <Void, Void, Void> {
-	final int sample_size = 150;
 	
 	@Override
 	protected Void doInBackground(Void... args0) {
-		System.out.println("Started Audio");
+		//System.out.println("Started Audio");
 		
 		float[] finalOut;
 		double az = 0;

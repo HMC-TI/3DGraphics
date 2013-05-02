@@ -1,121 +1,97 @@
 package com.example.daudiodemo;
+
 import java.util.Arrays;
 
-
-public class Audio3D {	
+public class Audio3D {
 	// Constants
-
-	//number of time samples
-	static final int time_samples = 128;
-	static final int hacked_time_samples = 150;
 
 	// Public members
 	static double az;
-	static double dist;
-	static double oldAz = 0;
 	static double elev = 0;
+	static double oldAz = 0;
 	static double oldElev = 0;
 
-	static HACKED_SAMPLES oldOut = new HACKED_SAMPLES();
 	static HACKED_SAMPLES newOut = new HACKED_SAMPLES();
-	
-	float[] finalOut = new float[hacked_time_samples*2];
+	static HACKED_SAMPLES oldOut = new HACKED_SAMPLES();
+	float[] finalOut = new float[HACKED_SAMPLES.sample_size * 2];
 
-	static boolean cfFlag; // Are we cross-fading or what?
-	static float[] rampUp = new float[hacked_time_samples];
-	static float[] rampDn = new float[hacked_time_samples];
+	// cross fading stuff
+	static boolean cfFlag;
+	static float[] rampUp = new float[HACKED_SAMPLES.sample_size];
+	static float[] rampDn = new float[HACKED_SAMPLES.sample_size];
 
 	public GetIRF getIrf = new GetIRF();
 
-	Audio3D(int azimuth, int elevation){
+	Audio3D(int azimuth, int elevation) {
 		Audio3D.az = azimuth;
-		Audio3D.oldAz = azimuth;
 		Audio3D.elev = elevation;
+		Audio3D.oldAz = azimuth;
 		Audio3D.oldElev = elevation;
+
+		// Create the ramps
+		for (int i = 0; i < HACKED_SAMPLES.sample_size; i++) { 
+			rampUp[i] = (float) (i / (float)(HACKED_SAMPLES.sample_size - 1));
+			rampDn[i] = 1 - rampUp[i];
+		}
+		
+		//System.out.println(Arrays.toString(rampDn));
 	}
 
 	public float[] runAudio3D() {
-		// ///////////////////////////
-		// Checks for cross-fading //
-		// ///////////////////////////
-		if ((oldAz != az) || (oldElev != elev))
-			cfFlag = true;
-		else
-			cfFlag = false;
 
 		// ////////////
 		// Get current IRFs //
-		// ////////////
+		// ///////////		
+		if(cfFlag) {
+			loadOldIRFs();
+		}
+		
 		loadIRFs();
-
-		// /////////////
-		// Crossfade //
-		// /////////////
-		if (cfFlag) {
-			createOldConvolveAndCrossfade();
+		
+		if(cfFlag) {
+			crossfade();
 		}
 
-		// Carries over the old azimuth and elevation for cross-fading
-		// purposes
-		oldAz = az;
-		oldElev = elev;
-		oldOut = newOut;
-
-		// interwave
-		// Interleave left and right channels for stereo output
 		for (int i = 0; i < newOut.left.length; i++) {
-			finalOut[i*2] = newOut.left[i];
-			finalOut[i*2 + 1] = newOut.right[i];
+			// This flips the data if we are on the left side.
+			if (getIrf.cur_flip_flag) {
+				finalOut[i * 2] = newOut.right[i];
+				finalOut[i * 2 + 1] = newOut.left[i];
+			} else {
+				finalOut[i * 2] = newOut.left[i];
+				finalOut[i * 2 + 1] = newOut.right[i];
+			}
 		}
 
 		return finalOut;
-	}
-
-	//////////////////////////////
-	// Generic helper functions //
-	//////////////////////////////
-	/*****************************************************
-	 * Changed this function
-	 *****************************************************/
-	void init() {
-		// Read in 3D audio data from file
-		GetIRF getIrf = new GetIRF();
-		getIrf.read_irfs();
-
-		for (int i = 0; i < hacked_time_samples; i++) { // Initialize ramps
-			rampUp[i] = (float) (i/(hacked_time_samples-1));
-			rampDn[i] = 1 - rampUp[i];
-		}
+		// return newOut.left;
 	}
 
 	/*************************************************
 	 * New function
 	 **************************************************/
-	void loadIRFs(){
+	void loadIRFs() {
 		newOut = getIrf.get_irf(elev, az);
 	}
 
-
-	/**
-	 * If we have had a change in our irf buffer then we need to compute what the output signal
-	 * would be with the old irf buffer and then crossfade between the two outputs.
-	 */
-	void createOldConvolveAndCrossfade() {
-		newOut.left = crossfade(newOut.left, oldOut.left);
-		newOut.right = crossfade(newOut.right, oldOut.right);
-
+	void loadOldIRFs() {
+		oldOut = getIrf.get_irf(oldElev, oldAz);
 	}
-
-	float[] crossfade(float[] newIn, float[] oldIn){
-		float[] out = new float[hacked_time_samples];
-		for (int i = 0; i < hacked_time_samples; i++) {
-			out[i] = newIn[i]*rampUp[i] + oldIn[i]*rampDn[i];
+	
+	// Might have trouble with how I am changing the sides 
+	void crossfade() {
+		for (int i = 0; i < HACKED_SAMPLES.sample_size; i++) {
+			newOut.left[i] = newOut.left[i] * rampUp[i] + oldOut.left[i] * rampDn[i];
+			newOut.right[i] = newOut.right[i] * rampUp[i] + oldOut.right[i] * rampDn[i];
 		}
-		return out;
+		return;
 	}
 
 	void updateLocation(double newaz, double newelev) {
-		// Saves old az and elev- this may not be necessary, as it is done in runAudio3D
+		// see if we need to crossfade
+		if (newaz != az || newelev != elev) cfFlag = true;
+		else cfFlag = false;
+			
 		oldAz = az;
 		oldElev = elev;
 		az = newaz;

@@ -96,9 +96,6 @@ public class SensorHubService extends Service {
 		// Connect asynchronously
 		razor.asyncConnect(5); // 5 connect attempts
 		
-		
-		// now init the 3D audio
-		audio.init();
 
 	}
 
