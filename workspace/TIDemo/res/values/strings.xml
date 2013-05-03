@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">3D Audio Demo</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_intro_screen">IntroScreen</string>
+    <string name="title_activity_demo_graphics">DemoGraphics</string>
+    <string name="title_activity_razor_example">RazorExample</string>
+    <string name="title_activity_instruct_screen">InstructScreen</string>
+    <string name="intro_message">Start by calibrating your sensor hub. Click below to begin.</string>
+    <string name="select_device">Please select your Razor AHRS Bluetooth device:</string>
+    <string name="paired_warning">You can only connect to paired devices. If you cannot find your Razor AHRS, go to system options and make sure it is paired.</string>
+    <string name="instruct_message">Look around the room to find the diamond! When you see it highlighted, click to collect. Good luck!</string>
+    <string name="button_gametel_description">South button on Gametel controller.</string>
+    <string name="intro_button">Calibrate</string>
+    <string name="begin_button">Begin Game</string>
+    <string name="play_button">Play</string>
+    <string name="connect_button_connect">Connect</string>
+    <string name="connect_button_connecting">Connecting &#8230;</string>
+    <string name="connect_button_connected">Connected</string>
+    <string name="cancel_button">Cancel</string>
+
+</resources>
