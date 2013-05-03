@@ -33,7 +33,7 @@ public class SensorHubService extends Service {
 	public static TextView initial;
 	public static boolean initConnected = false;
 	
-	public static Audio3D audio = new Audio3D(0,0);
+	public static Audio3D audio; //= new Audio3D(0,0);
 
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -97,6 +97,10 @@ public class SensorHubService extends Service {
 		razor.asyncConnect(5); // 5 connect attempts
 		
 
+	}
+	
+	public static void create3DAudio() {
+		audio = new Audio3D(0,0);
 	}
 
 	@Override

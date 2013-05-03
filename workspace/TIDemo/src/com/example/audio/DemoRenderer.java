@@ -868,19 +868,6 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 
 		// These are the relative az and elev that will allow us to calculate
 		// the needed az and elev for the audio
-		// Spherical coordinates describing where we are looking
-		rLook = FloatMath.sqrt(lookX * lookX + lookY * lookY + (lookZ + 6.0f)
-				* (lookZ + 6.0f));
-		elevLook = (float) ((float) 180 / Math.PI * Math
-				.acos((double) (lookZ + 6.0f) / rLook));
-		azLook = (float) ((float) 180 / Math.PI * Math.atan((double) lookY
-				/ lookX));
-		if (lookX < 0) {
-			azLook = azLook + (float) Math.signum((double) lookY) * 180;
-		}
-
-		// These are the relative az and elev that will allow us to calculate
-		// the needed az and elev for the audio
 		// Spherical coordinates describing the location of the object emitting
 		// noise
 		rPyr = FloatMath.sqrt(pyrX * pyrX + pyrY * pyrY + (pyrZ + 6.0f)
@@ -896,11 +883,18 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		// These values are the az and elev we need to use in our audio code:
 		// Our thinking was that if it's to the left we want the angle to be
 		// negative
-		SensorHubService.az = azLook - azPyr;
-		SensorHubService.elev = elevLook - elevPyr;
 		
-		System.out.println("The az is " + SensorHubService.az);
+		// So the reason for subtracting 90 degrees is that the coordinate system is 90 degrees off
+		// That or my calculations are 90 degrees wrong, but this works!
+		SensorHubService.az = (azPyr-90) - SensorHubService.yaw;
+		SensorHubService.elev = (elevPyr-90) + SensorHubService.pitch;
+		
+		/*System.out.println("The az is " + SensorHubService.az);
 		System.out.println("The elev is " + SensorHubService.elev);
+		System.out.println("The Pry az is " + azPyr);
+		System.out.println("The Pry elev is " + elevPyr);
+		System.out.println("The User az is " + SensorHubService.yaw);
+		System.out.println("The User elev is " + SensorHubService.pitch);*/
 
 		Matrix.setLookAtM(mViewMatrix, 0, eyeX, eyeY, eyeZ, lookX, lookY,
 				lookZ, upX, upY, upZ);

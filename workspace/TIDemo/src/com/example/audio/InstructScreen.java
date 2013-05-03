@@ -29,6 +29,8 @@ public class InstructScreen extends Activity {
 				startActivity(graphicsIntent);
 			}
 		});
+		
+		SensorHubService.create3DAudio();
 
 	}
 
