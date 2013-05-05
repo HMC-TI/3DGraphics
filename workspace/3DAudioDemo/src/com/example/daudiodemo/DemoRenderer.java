@@ -743,7 +743,10 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 
 		// Load the texture from our resources. If a different texture is
 		// desired, save a new .png into the drawable-nodpi folder. It will
-		// autogenerate a resource to use in R.java.
+		// autogenerate a resource to use in R.java. This cube map .png was
+		// provided by panoramic photographer Edward Fink, who has given us
+		// permission to use the cube map in this application. Find more of
+		// his 360 degree panoramic scenes on bigeyeinthesky.com.
 		mTextureDataHandle = TextureHelper.loadTexture(mActivityContext,
 				R.drawable.waterfall_hires);
 	}
@@ -780,7 +783,17 @@ public class DemoRenderer implements GLSurfaceView.Renderer {
 		// ADD LEVELS HERE.
 		// Additional levels are created by changing the texture of the cube to
 		// different images of various environments. Change the texture to
-		// simulate different levels!
+		// simulate different levels! Note that we have not contacted the
+		// creators of these cube maps for permission to use the following cube
+		// maps in our application. If this application is distributed outside
+		// Texas Instruments, cube map creators must give consent to use their
+		// maps or new cube maps must be created.
+		
+		// NOTE: The best cube maps to use as textures for the room are ones with
+		// 512*512 pixels per cube face. Bigger, and the application can't handle
+		// the size. Smaller, and seams are visible on the upper and lower edges
+		// of the cube (currently visible in Level 3, where we use a 256*256 cube
+		// map). 
 
 		/* Level 2 */
 		if (levelTwo == true) {
