@@ -21,9 +21,10 @@ public class SensorHubService extends Service {
 	// public static BluetoothDevice razorDevice;
 	public RazorAHRS razor;
 	// public RadioGroup deviceListRadioGroup;
-	
-	// These are the values we want to use for the 3D audio. Note that they are calculated in DemoRenderer
-	public static float az =0;
+
+	// These are the values we want to use for the 3D audio. Note that they are
+	// calculated in DemoRenderer
+	public static float az = 0;
 	public static float elev = 0;
 
 	public static float roll = 0;
@@ -32,8 +33,8 @@ public class SensorHubService extends Service {
 
 	public static TextView initial;
 	public static boolean initConnected = false;
-	
-	public static Audio3D audio; //= new Audio3D(0,0);
+
+	public static Audio3D audio; // = new Audio3D(0,0);
 
 	@Override
 	public IBinder onBind(Intent arg0) {
@@ -45,7 +46,8 @@ public class SensorHubService extends Service {
 		super.onCreate();
 		Log.d(TAG, "onCreate");
 
-		//Toast.makeText(SensorHubService.this, "Sensor Hub Service Created ...", Toast.LENGTH_SHORT).show();
+		// Toast.makeText(SensorHubService.this,
+		// "Sensor Hub Service Created ...", Toast.LENGTH_SHORT).show();
 
 		// Create new razor instance and set listener
 		razor = new RazorAHRS(RazorExample.razorDevice, new RazorListener() {
@@ -86,8 +88,9 @@ public class SensorHubService extends Service {
 			public void onIOExceptionAndDisconnect(IOException e) {
 				Toast.makeText(
 						SensorHubService.this,
-						"Disconnected, an error occured: " + e.getMessage()+ ".", Toast.LENGTH_SHORT).show();
-				
+						"Disconnected, an error occured: " + e.getMessage()
+								+ ".", Toast.LENGTH_SHORT).show();
+
 				RazorExample.setButtonStateDisconnected();
 			}
 
@@ -95,20 +98,18 @@ public class SensorHubService extends Service {
 
 		// Connect asynchronously
 		razor.asyncConnect(5); // 5 connect attempts
-		
 
 	}
-	
+
 	public static void create3DAudio() {
-		audio = new Audio3D(0,0);
+		audio = new Audio3D(0, 0);
 	}
 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
 		this.razor.asyncDisconnect();
-		//Toast.makeText(SensorHubService.this, "Disconnected", Toast.LENGTH_SHORT).show();
+		// Toast.makeText(SensorHubService.this, "Disconnected",
+		// Toast.LENGTH_SHORT).show();
 	}
 }
-
-

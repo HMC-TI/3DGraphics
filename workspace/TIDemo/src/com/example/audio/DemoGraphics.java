@@ -23,7 +23,7 @@ public class DemoGraphics extends Activity {
 
 	// For the Gametel controller, a Bluetooth device
 	private BroadcastReceiver mReceiver;
-	
+
 	// Our custom GLSurfaceView, defined below
 	private MyGLSurfaceView mGLSurfaceView;
 
@@ -66,7 +66,7 @@ public class DemoGraphics extends Activity {
 		// This will restart the score any time the graphics are paused by a
 		// screen change
 		MyGLSurfaceView.score = 0;
-		
+
 		// The activity must call the GL surface view's onResume() on activity
 		// onResume().
 		mGLSurfaceView.onResume();
@@ -120,8 +120,8 @@ class MyGLSurfaceView extends GLSurfaceView {
 	}
 
 	/**
-	 *  Help function to parse the Gametel key. Buttons can be set to game
-	 *  functionality at the programmer's discretion.
+	 * Help function to parse the Gametel key. Buttons can be set to game
+	 * functionality at the programmer's discretion.
 	 */
 	public boolean handleKeyEvent(int keyCode, KeyEvent event) {
 		boolean pressed = event.getAction() == KeyEvent.ACTION_DOWN;
@@ -130,54 +130,46 @@ class MyGLSurfaceView extends GLSurfaceView {
 
 		/* Upper navigation button */
 		case KeyEvent.KEYCODE_DPAD_UP:
-			// For debugging: if need to change view without sensor hub, use DPad on
+			// For debugging: if need to change view without sensor hub, use
+			// DPad on
 			// Gametel Controller
 			/*
-			if (pressed) {
-			mRenderer.upRotate = true;
-			} else {
-			mRenderer.upRotate = false;
-			}
-			*/
+			 * if (pressed) { mRenderer.upRotate = true; } else {
+			 * mRenderer.upRotate = false; }
+			 */
 			break;
 
 		/* Right navigation button */
 		case KeyEvent.KEYCODE_DPAD_RIGHT:
-			// For debugging: if need to change view without sensor hub, use DPad on
+			// For debugging: if need to change view without sensor hub, use
+			// DPad on
 			// Gametel Controller
 			/*
-			if (pressed) {
-			mRenderer.rightRotate = true;
-			} else {
-			mRenderer.rightRotate = false;
-			}
-			*/
+			 * if (pressed) { mRenderer.rightRotate = true; } else {
+			 * mRenderer.rightRotate = false; }
+			 */
 			break;
 
 		/* Lower navigation button */
 		case KeyEvent.KEYCODE_DPAD_DOWN:
-			// For debugging: if need to change view without sensor hub, use DPad on
+			// For debugging: if need to change view without sensor hub, use
+			// DPad on
 			// Gametel Controller
 			/*
-			if (pressed) {
-				mRenderer.downRotate = true;
-			} else {
-				mRenderer.downRotate = false;
-			}
-			*/
+			 * if (pressed) { mRenderer.downRotate = true; } else {
+			 * mRenderer.downRotate = false; }
+			 */
 			break;
 
 		/* Left navigation button */
 		case KeyEvent.KEYCODE_DPAD_LEFT:
-			// For debugging: if need to change view without sensor hub, use DPad on
+			// For debugging: if need to change view without sensor hub, use
+			// DPad on
 			// Gametel Controller
 			/*
-			if (pressed) {
-				mRenderer.leftRotate = true;
-			} else {
-				mRenderer.leftRotate = false;
-			}
-			*/
+			 * if (pressed) { mRenderer.leftRotate = true; } else {
+			 * mRenderer.leftRotate = false; }
+			 */
 			break;
 
 		/* Start button */
@@ -191,7 +183,8 @@ class MyGLSurfaceView extends GLSurfaceView {
 		/* Left trigger button */
 		case KeyEvent.KEYCODE_BUTTON_L1:
 			if (pressed) {
-				// Demo "cheat" button: move the diamond to a new location without
+				// Demo "cheat" button: move the diamond to a new location
+				// without
 				// centering diamond requirement
 				Random rand = new Random();
 				mRenderer.pyrX = rand.nextFloat() * 8 - 4.0f;
@@ -244,7 +237,8 @@ class MyGLSurfaceView extends GLSurfaceView {
 		case KeyEvent.KEYCODE_BUTTON_X:
 			if (pressed) {
 				if (mRenderer.hasBeenFound()) {
-					// If diamond is in view, centered, and the player has pressed
+					// If diamond is in view, centered, and the player has
+					// pressed
 					// the button, move the diamond to a new location
 					Random rand = new Random();
 					mRenderer.pyrX = rand.nextFloat() * 8 - 4.0f;
@@ -256,7 +250,7 @@ class MyGLSurfaceView extends GLSurfaceView {
 					score += 1;
 					Toast.makeText(this.getContext(), String.valueOf(score),
 							Toast.LENGTH_SHORT).show();
-					
+
 					/*
 					 * For changing levels: if the player has reached a certain
 					 * score, change levels (cube texture) by updating the level

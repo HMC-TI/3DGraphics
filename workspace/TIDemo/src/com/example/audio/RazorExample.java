@@ -38,21 +38,8 @@ public class RazorExample extends Activity {
 	public RazorAHRS razor;
 	public BluetoothDevice rb;
 
-	public static float roll = 0;
-	public static float pitch = 0;
-	public static float yaw = 0;
-	
-	// Don't need these?
-	//public static float initRoll;
-	//public static float initPitch;
-	//public static float initYaw;
-
-	//Don't need these?
-	//public static TextView initial;
-	//public static boolean initConnected = false;
-
 	private RadioGroup deviceListRadioGroup;
-	
+
 	// Buttons
 	public static Button beginButton;
 	public static Button connectButton;
@@ -210,14 +197,13 @@ public class RazorExample extends Activity {
 		if (razor != null)
 			razor.asyncDisconnect();
 	}
-	
+
 	@Override
-	protected void onDestroy(){
+	protected void onDestroy() {
 		super.onDestroy();
 		Log.d(TAG, "onDestroy");
 		// Stop sensor hub service
-		stopService(new Intent(RazorExample.this,
-				SensorHubService.class));
+		stopService(new Intent(RazorExample.this, SensorHubService.class));
 	}
 
 }
