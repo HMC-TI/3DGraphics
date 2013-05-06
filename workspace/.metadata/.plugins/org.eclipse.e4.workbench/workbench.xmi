@@ -85,7 +85,7 @@
                 <children xsi:type="advanced:Placeholder" xmi:id="_jCwoCXx4EeKaevtfAyA2cA" elementId="org.eclipse.egit.ui.RepositoriesView" toBeRendered="false" ref="_jCuy0Hx4EeKaevtfAyA2cA"/>
               </children>
             </children>
-            <children xsi:type="basic:PartSashContainer" xmi:id="_jCwoCnx4EeKaevtfAyA2cA" containerData="7876" selectedElement="_jCwoC3x4EeKaevtfAyA2cA">
+            <children xsi:type="basic:PartSashContainer" xmi:id="_jCwoCnx4EeKaevtfAyA2cA" containerData="7876" selectedElement="_jCxPEXx4EeKaevtfAyA2cA">
               <children xsi:type="basic:PartSashContainer" xmi:id="_jCwoC3x4EeKaevtfAyA2cA" containerData="6208" selectedElement="_jCwoDHx4EeKaevtfAyA2cA" horizontal="true">
                 <children xsi:type="advanced:Placeholder" xmi:id="_jCwoDHx4EeKaevtfAyA2cA" elementId="org.eclipse.ui.editorss" containerData="7500" ref="_jBuGMHx4EeKaevtfAyA2cA"/>
                 <children xsi:type="basic:PartStack" xmi:id="_jCwoDXx4EeKaevtfAyA2cA" elementId="right" toBeRendered="false" containerData="2500">
@@ -96,7 +96,7 @@
                   <children xsi:type="advanced:Placeholder" xmi:id="_jCxPEHx4EeKaevtfAyA2cA" elementId="org.eclipse.ant.ui.views.AntView" toBeRendered="false" ref="_jCtksHx4EeKaevtfAyA2cA"/>
                 </children>
               </children>
-              <children xsi:type="basic:PartStack" xmi:id="_jCxPEXx4EeKaevtfAyA2cA" elementId="bottom" containerData="3792" selectedElement="_jCxPFnx4EeKaevtfAyA2cA">
+              <children xsi:type="basic:PartStack" xmi:id="_jCxPEXx4EeKaevtfAyA2cA" elementId="bottom" containerData="3792" selectedElement="_5mMYsHx4EeKaevtfAyA2cA">
                 <tags>newtablook</tags>
                 <tags>org.eclipse.e4.secondaryDataStack</tags>
                 <children xsi:type="advanced:Placeholder" xmi:id="_jCxPEnx4EeKaevtfAyA2cA" elementId="org.eclipse.ui.views.ProblemView" ref="_jCTVAHx4EeKaevtfAyA2cA"/>
@@ -141,7 +141,17 @@
         <tags>org.eclipse.e4.primaryDataStack</tags>
         <tags>EditorStack</tags>
         <children xsi:type="basic:Part" xmi:id="_Yrg5ULOMEeKKJZScp3-PEw" elementId="org.eclipse.e4.ui.compatibility.editor" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityEditor" label="DemoGraphics.java" iconURI="platform:/plugin/org.eclipse.jdt.ui//icons/full/obj16/jcu_obj.gif" tooltip="TIDemo/src/com/example/audio/DemoGraphics.java" closeable="true">
-          <persistedState key="memento" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>&#xA;&lt;editor id=&quot;org.eclipse.jdt.ui.CompilationUnitEditor&quot;>&#xA;&lt;input factoryID=&quot;org.eclipse.ui.part.FileEditorInputFactory&quot; path=&quot;/TIDemo/src/com/example/audio/DemoGraphics.java&quot;/>&#xA;&lt;editorState selectionHorizontalPixel=&quot;0&quot; selectionLength=&quot;0&quot; selectionOffset=&quot;665&quot; selectionTopPixel=&quot;3786&quot;/>&#xA;&lt;/editor>"/>
+          <persistedState key="memento" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>&#xA;&lt;editor id=&quot;org.eclipse.jdt.ui.CompilationUnitEditor&quot;>&#xA;&lt;input factoryID=&quot;org.eclipse.ui.part.FileEditorInputFactory&quot; path=&quot;/TIDemo/src/com/example/audio/DemoGraphics.java&quot;/>&#xA;&lt;editorState selectionHorizontalPixel=&quot;0&quot; selectionLength=&quot;0&quot; selectionOffset=&quot;665&quot; selectionTopPixel=&quot;0&quot;/>&#xA;&lt;/editor>"/>
+          <tags>Editor</tags>
+          <tags>removeOnHide</tags>
+        </children>
+        <children xsi:type="basic:Part" xmi:id="_ZGNAULX0EeKQJoQXPfIguQ" elementId="org.eclipse.e4.ui.compatibility.editor" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityEditor" label="PlayAudio.java" iconURI="platform:/plugin/org.eclipse.jdt.ui//icons/full/obj16/jcu_obj.gif" tooltip="TIDemo/src/com/example/audio/PlayAudio.java" closeable="true">
+          <persistedState key="memento" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>&#xA;&lt;editor id=&quot;org.eclipse.jdt.ui.CompilationUnitEditor&quot;>&#xA;&lt;input factoryID=&quot;org.eclipse.ui.part.FileEditorInputFactory&quot; path=&quot;/TIDemo/src/com/example/audio/PlayAudio.java&quot;/>&#xA;&lt;editorState selectionHorizontalPixel=&quot;0&quot; selectionLength=&quot;13&quot; selectionOffset=&quot;700&quot; selectionTopPixel=&quot;141&quot;/>&#xA;&lt;/editor>"/>
+          <tags>Editor</tags>
+          <tags>removeOnHide</tags>
+        </children>
+        <children xsi:type="basic:Part" xmi:id="_5DrCgLX0EeKQJoQXPfIguQ" elementId="org.eclipse.e4.ui.compatibility.editor" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityEditor" label="AndroidAudioDevice.java" iconURI="platform:/plugin/org.eclipse.jdt.ui//icons/full/obj16/jcu_obj.gif" tooltip="TIDemo/src/com/example/audio/AndroidAudioDevice.java" closeable="true">
+          <persistedState key="memento" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>&#xA;&lt;editor id=&quot;org.eclipse.jdt.ui.CompilationUnitEditor&quot;>&#xA;&lt;input factoryID=&quot;org.eclipse.ui.part.FileEditorInputFactory&quot; path=&quot;/TIDemo/src/com/example/audio/AndroidAudioDevice.java&quot;/>&#xA;&lt;editorState selectionHorizontalPixel=&quot;0&quot; selectionLength=&quot;0&quot; selectionOffset=&quot;0&quot; selectionTopPixel=&quot;0&quot;/>&#xA;&lt;/editor>"/>
           <tags>Editor</tags>
           <tags>removeOnHide</tags>
         </children>
