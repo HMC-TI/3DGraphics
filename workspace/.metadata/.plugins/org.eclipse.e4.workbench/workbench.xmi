@@ -136,7 +136,7 @@
       <tags>categoryTag:Help</tags>
     </sharedElements>
     <sharedElements xsi:type="advanced:Area" xmi:id="_jBuGMHx4EeKaevtfAyA2cA" elementId="org.eclipse.ui.editorss" selectedElement="_jButQHx4EeKaevtfAyA2cA">
-      <children xsi:type="basic:PartStack" xmi:id="_jButQHx4EeKaevtfAyA2cA" elementId="org.eclipse.e4.primaryDataStack" selectedElement="_Yrg5ULOMEeKKJZScp3-PEw">
+      <children xsi:type="basic:PartStack" xmi:id="_jButQHx4EeKaevtfAyA2cA" elementId="org.eclipse.e4.primaryDataStack" selectedElement="_-d-04Lf-EeKVcfFITmeAwg">
         <tags>newtablook</tags>
         <tags>org.eclipse.e4.primaryDataStack</tags>
         <tags>EditorStack</tags>
@@ -152,6 +152,11 @@
         </children>
         <children xsi:type="basic:Part" xmi:id="_5DrCgLX0EeKQJoQXPfIguQ" elementId="org.eclipse.e4.ui.compatibility.editor" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityEditor" label="AndroidAudioDevice.java" iconURI="platform:/plugin/org.eclipse.jdt.ui//icons/full/obj16/jcu_obj.gif" tooltip="TIDemo/src/com/example/audio/AndroidAudioDevice.java" closeable="true">
           <persistedState key="memento" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>&#xA;&lt;editor id=&quot;org.eclipse.jdt.ui.CompilationUnitEditor&quot;>&#xA;&lt;input factoryID=&quot;org.eclipse.ui.part.FileEditorInputFactory&quot; path=&quot;/TIDemo/src/com/example/audio/AndroidAudioDevice.java&quot;/>&#xA;&lt;editorState selectionHorizontalPixel=&quot;0&quot; selectionLength=&quot;0&quot; selectionOffset=&quot;0&quot; selectionTopPixel=&quot;0&quot;/>&#xA;&lt;/editor>"/>
+          <tags>Editor</tags>
+          <tags>removeOnHide</tags>
+        </children>
+        <children xsi:type="basic:Part" xmi:id="_-d-04Lf-EeKVcfFITmeAwg" elementId="org.eclipse.e4.ui.compatibility.editor" contributionURI="bundleclass://org.eclipse.ui.workbench/org.eclipse.ui.internal.e4.compatibility.CompatibilityEditor" label="Audio3D.java" iconURI="platform:/plugin/org.eclipse.jdt.ui//icons/full/obj16/jcu_obj.gif" tooltip="TIDemo/src/com/example/audio/Audio3D.java" closeable="true">
+          <persistedState key="memento" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?>&#xA;&lt;editor id=&quot;org.eclipse.jdt.ui.CompilationUnitEditor&quot;>&#xA;&lt;input factoryID=&quot;org.eclipse.ui.part.FileEditorInputFactory&quot; path=&quot;/TIDemo/src/com/example/audio/Audio3D.java&quot;/>&#xA;&lt;editorState selectionHorizontalPixel=&quot;0&quot; selectionLength=&quot;0&quot; selectionOffset=&quot;1544&quot; selectionTopPixel=&quot;729&quot;/>&#xA;&lt;/editor>"/>
           <tags>Editor</tags>
           <tags>removeOnHide</tags>
         </children>

@@ -13,7 +13,7 @@ public class Audio3D {
 	// The audio data
 	static HACKED_SAMPLES newOut = new HACKED_SAMPLES();
 	static HACKED_SAMPLES oldOut = new HACKED_SAMPLES();
-	float[] finalOut = new float[HACKED_SAMPLES.sample_size * 2];
+	float[] finalOut = new float[(HACKED_SAMPLES.sample_size + 4410)* 2]; 
 
 	// cross fading stuff
 	static boolean cfFlag;
@@ -49,16 +49,16 @@ public class Audio3D {
 	public float[] runAudio3D() {
 
 		// Get the old audio data if we need to crossfade
-		if (cfFlag) {
-			loadOldIRFs();
-		}
+//		if (cfFlag) {
+//			loadOldIRFs();
+//		}
 
 		// load the new audio data
 		loadIRFs();
 
-		if (cfFlag) {
-			crossfade();
-		}
+//		if (cfFlag) {
+//			crossfade();
+//		}
 
 		// interleave audio samples so that we hear the left and right channels
 		// note: even values are left, odd values are right
